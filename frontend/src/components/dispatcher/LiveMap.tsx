@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TelemetryStatus } from "./TelemetryStatus";
 import {
   MapContainer,
@@ -7,8 +7,21 @@ import {
   Popup,
   Polyline,
   CircleMarker,
+  useMap,
 } from "react-leaflet";
 import L from "leaflet";
+
+function MapResizer() {
+  const map = useMap();
+  useEffect(() => {
+    map.invalidateSize();
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [map]);
+  return null;
+}
 import { Ward, Depot, Tanker, WaterRequest } from "../../types";
 import {
   Layers,
@@ -241,12 +254,16 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         scrollWheelZoom={true}
         style={{ width: "100%", height: "100%" }}
       >
+        {/* Standard High-Performance OpenStreetMap Tiles (No API key required) */}
         <TileLayer
-          attribution='Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-          maxZoom={16}
-          eventHandlers={{ tileerror: (e: any) => { const t = e.tile as HTMLImageElement; if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://tile.openstreetmap.org/${e.coords.z}/${e.coords.x}/${e.coords.y}.png`; } } }}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={
+            mapStyle === "voyager"
+              ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+              : "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          }
         />
+        <MapResizer />
 
         {/* Route Polylines */}
         {routesToRender.map((route, idx) => (

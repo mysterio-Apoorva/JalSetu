@@ -60,10 +60,8 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     <div className="relative overflow-hidden rounded-2xl border border-slate-700/60 shadow-xl bg-slate-950">
       <MapContainer center={[28.63,77.18]} zoom={11} style={{height:400,width:"100%",zIndex:0}}>
         <TileLayer
-          attribution='Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'
-          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
-          maxZoom={16}
-          eventHandlers={{ tileerror: (e: any) => { const t = e.tile as HTMLImageElement; if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://tile.openstreetmap.org/${e.coords.z}/${e.coords.x}/${e.coords.y}.png`; } } }}
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
         />
         <MapSelection onPick={choose}/><View point={point} route={route}/>
       {(config?.centres?.filter(c=>c.status==="READY")||(config?.origin?[config.origin]:[])).map(c=><CircleMarker key={c.name} center={[c.coordinates.lat,c.coordinates.lng]} radius={10} pathOptions={{color:"#047857"}}><Popup>Jal Kendra: {c.name}</Popup></CircleMarker>)}

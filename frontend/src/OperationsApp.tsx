@@ -43,6 +43,17 @@ const DEMO_FLEET: Tanker[] = [
         isCompleted: false,
         residentOtp: "482910",
       },
+      {
+        stopIndex: 2,
+        requestId: "REQ-02",
+        wardName: "Sangam Vihar & Deoli",
+        coordinates: { lat: 28.502, lng: 77.241 },
+        demandLiters: 4000,
+        etaMinutes: 35,
+        urgencyTier: "CRITICAL_EMERGENCY",
+        isCompleted: false,
+        residentOtp: "318920",
+      },
     ],
   },
   {
@@ -50,15 +61,82 @@ const DEMO_FLEET: Tanker[] = [
     vehicleNumber: "DL 2CA 8831",
     driverName: "Satish Kumar",
     driverPhone: "+91 98731 22991",
-    status: "IDLE",
+    status: "EN_ROUTE",
     capacityLiters: 12000,
     currentWaterLevelLiters: 9000,
-    currentCoordinates: { lat: 28.673, lng: 77.275 },
+    currentCoordinates: { lat: 28.692, lng: 77.251 },
     assignedDepotId: "DEPOT-01",
     depotName: "Wazirabad Water Works Booster Station",
+    speedKmph: 22.0,
+    currentWaypointIndex: 0,
+    assignedRoute: [
+      {
+        stopIndex: 1,
+        requestId: "REQ-03",
+        wardName: "Seelampur & Jaffrabad",
+        coordinates: { lat: 28.671, lng: 77.273 },
+        demandLiters: 4800,
+        etaMinutes: 12,
+        urgencyTier: "CRITICAL_EMERGENCY",
+        isCompleted: false,
+        residentOtp: "739104",
+      },
+      {
+        stopIndex: 2,
+        requestId: "REQ-04",
+        wardName: "Karol Bagh & Anand Parbat",
+        coordinates: { lat: 28.658, lng: 77.185 },
+        demandLiters: 4000,
+        etaMinutes: 30,
+        urgencyTier: "HIGH_PRIORITY",
+        isCompleted: false,
+        residentOtp: "620194",
+      },
+    ],
+  },
+  {
+    id: "TK-DELHI-03",
+    vehicleNumber: "DL 3SZ 1928",
+    driverName: "Vikram Chautala",
+    driverPhone: "+91 99102 44102",
+    status: "ANOMALY_FLAGGED",
+    capacityLiters: 10000,
+    currentWaterLevelLiters: 2000,
+    currentCoordinates: { lat: 28.5845, lng: 77.062 },
+    assignedDepotId: "DEPOT-03",
+    depotName: "Dwarka Sector 6 Water Distribution Center",
     speedKmph: 0.0,
     currentWaypointIndex: 0,
-    assignedRoute: [],
+    anomalyWarning: "GHOST_TRIP_DETECTED: Tanker water dropped 8,000L in 90s without resident OTP verification",
+    assignedRoute: [
+      {
+        stopIndex: 1,
+        requestId: "REQ-05",
+        wardName: "Dwarka Sector 8 & JJ Clusters",
+        coordinates: { lat: 28.579, lng: 77.072 },
+        demandLiters: 4500,
+        etaMinutes: 0,
+        urgencyTier: "CRITICAL_EMERGENCY",
+        isCompleted: false,
+        residentOtp: "829301",
+      },
+    ],
+  },
+];
+
+const DEMO_ANOMALIES: FraudAnomaly[] = [
+  {
+    id: "ALR-8801",
+    alertCode: "FRAUD-GHOST-TRIP",
+    tankerId: "TK-DELHI-03",
+    wardName: "Dwarka Sector 8 / Commercial Cluster",
+    timestamp: "2026-10-10T14:30:00.000Z",
+    severity: "CRITICAL",
+    incidentType: "GHOST_TRIP_UNVERIFIED",
+    message: "Tanker water volume dropped from 10,000L to 2,000L with ZERO resident OTP inputs. Unscheduled commercial diversion suspected.",
+    dwellTimeSeconds: 90,
+    status: "ACTIVE_ALARM",
+    recommendedAction: "Freeze driver digital credentials, lock municipal fuel allowance, and dispatch zonal vigilance officer.",
   },
 ];
 
@@ -198,7 +276,7 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
   const [depots, setDepots] = useState<Depot[]>(() => isAutoDemo ? DELHI_DEPOTS : []);
   const [fleet, setFleet] = useState<Tanker[]>(() => isAutoDemo ? DEMO_FLEET : []);
   const [requests, setRequests] = useState<WaterRequest[]>(() => isAutoDemo ? DEMO_REQUESTS : []);
-  const [anomalies, setAnomalies] = useState<FraudAnomaly[]>([]);
+  const [anomalies, setAnomalies] = useState<FraudAnomaly[]>(() => isAutoDemo ? DEMO_ANOMALIES : []);
   const [selected, setSelected] = useState<Tanker | null>(() => isAutoDemo ? DEMO_FLEET[0] : null);
   const [connected, setConnected] = useState(false), [limited, setLimited] = useState(false);
   const [error, setError] = useState(""), [busy, setBusy] = useState(false);
@@ -210,6 +288,7 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
     setDepots(DELHI_DEPOTS);
     setFleet(DEMO_FLEET);
     setRequests(DEMO_REQUESTS);
+    setAnomalies(DEMO_ANOMALIES);
     setSelected(DEMO_FLEET[0]);
     setError("");
   }, []);
