@@ -27,7 +27,8 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
   onSubmitRequest,
   onRateDelivery,
 }) => {
-  const [selectedWardId, setSelectedWardId] = useState(wards[0].id);
+  const [chosenWardId, setChosenWardId] = useState("");
+  const selectedWardId = chosenWardId || (wards[0]?.id || "");
   const [citizenName, setCitizenName] = useState(
     import.meta.env.PROD || LIVE_MODE ? "" : "Anil Aggarwal (RWA)",
   );
@@ -93,7 +94,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
         w.name.toLowerCase().includes(p.locality.toLowerCase()) ||
         p.locality.toLowerCase().includes(w.name.toLowerCase()),
     );
-    if (matchedWard) setSelectedWardId(matchedWard.id);
+    if (matchedWard) setChosenWardId(matchedWard.id);
     const result = classifyWaterComplaint(
       p.quote,
       p.daysDry,
@@ -108,7 +109,11 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
 
     const classification = import.meta.env.PROD ? undefined : (aiAnalysisResult ||
       classifyWaterComplaint(complaintText, daysWithoutWater, vulnerableCount));
-    const wardObj = wards.find((w) => w.id === selectedWardId) || wards[0];
+    const wardObj = wards.find((w) => w.id === selectedWardId) || wards[0] || {
+      id: "WARD-01",
+      name: "Emergency Service Area",
+      coordinates: { lat: 28.528, lng: 77.179 },
+    };
 
     setSubmitError("");
     try {
@@ -254,7 +259,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                 <select
                   id="citizen-ward"
                   value={selectedWardId}
-                  onChange={(e) => setSelectedWardId(e.target.value)}
+                  onChange={(e) => setChosenWardId(e.target.value)}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-900 focus:outline-none focus:border-[#D9532F]"
                 >
                   {wards.map((ward) => (

@@ -56,6 +56,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 18,
     deliveredLitersToday: 42000,
     giniIndex: 0.28,
+    servicePoint: {
+      address: "Block L Main Chowk Standpost, Sangam Vihar",
+      coordinates: { lat: 28.502, lng: 77.241 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-South",
+    },
   },
   {
     id: "WARD-02",
@@ -69,6 +78,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 14,
     deliveredLitersToday: 36000,
     giniIndex: 0.24,
+    servicePoint: {
+      address: "Ward 07 Community Booster Tank, Mehrauli",
+      coordinates: { lat: 28.528, lng: 77.179 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-South",
+    },
   },
   {
     id: "WARD-03",
@@ -82,6 +100,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 11,
     deliveredLitersToday: 28000,
     giniIndex: 0.22,
+    servicePoint: {
+      address: "Sector 8 Primary Standpost, Dwarka JJ Colony",
+      coordinates: { lat: 28.579, lng: 77.072 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-SW",
+    },
   },
   {
     id: "WARD-04",
@@ -95,6 +122,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 9,
     deliveredLitersToday: 30000,
     giniIndex: 0.2,
+    servicePoint: {
+      address: "Sector 16 Distribution Point, Rohini",
+      coordinates: { lat: 28.735, lng: 77.112 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-NW",
+    },
   },
   {
     id: "WARD-05",
@@ -108,6 +144,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 16,
     deliveredLitersToday: 48000,
     giniIndex: 0.31,
+    servicePoint: {
+      address: "Gali No. 4 Water Hydrant Point, Seelampur",
+      coordinates: { lat: 28.671, lng: 77.273 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-NE",
+    },
   },
   {
     id: "WARD-06",
@@ -121,6 +166,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 6,
     deliveredLitersToday: 22000,
     giniIndex: 0.18,
+    servicePoint: {
+      address: "Anand Parbat Community Standpost, Karol Bagh",
+      coordinates: { lat: 28.658, lng: 77.185 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-Central",
+    },
   },
   {
     id: "WARD-07",
@@ -134,6 +188,15 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 13,
     deliveredLitersToday: 31000,
     giniIndex: 0.29,
+    servicePoint: {
+      address: "Rural Water Supply Terminal, Najafgarh Border",
+      coordinates: { lat: 28.609, lng: 76.985 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-SW",
+    },
   },
   {
     id: "WARD-08",
@@ -147,5 +210,14 @@ export const DELHI_WARDS: Ward[] = [
     activeRequestsCount: 4,
     deliveredLitersToday: 18000,
     giniIndex: 0.15,
+    servicePoint: {
+      address: "C-Block Pocket 2 Hydrant, Vasant Kunj",
+      coordinates: { lat: 28.539, lng: 77.148 },
+    },
+    provenance: {
+      source: "Delhi Jal Board Zonal Registry",
+      verifiedAt: "2026-02-15T00:00:00Z",
+      verifiedBy: "DJB-Zonal-Officer-South",
+    },
   },
 ];
