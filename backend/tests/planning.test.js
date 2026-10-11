@@ -20,6 +20,28 @@ test("route always starts at the server-configured centre and persists only a si
   assert.ok(!calls.some(x=>x.constructor.name==="TransactWriteCommand"));
 });
 test("missing road geometry cannot become a straight-line fake route",()=>{assert.throws(()=>p.routeResult({Summary:{Distance:1,DurationSeconds:1},Legs:[]},{},{}),/geometry/);});
+test("OTP readiness follows actual SES sender verification and fails closed",async t=>{
+  for(const status of ["Pending","Success","Failed"]){
+    const mock=t.mock.method(SESClient.prototype,"send",async()=>({VerificationAttributes:{"sender@example.org":{VerificationStatus:status}}}));
+    assert.equal(await p.senderReady(),status==="Success");mock.mock.restore();
+  }
+  t.mock.method(SESClient.prototype,"send",async()=>{throw Error("unavailable");});
+  assert.equal(await p.senderReady(),false);
+});
+test("unknown or unconfirmed centres cannot replace the server-owned origin",async t=>{
+  setup(t);
+  for(const centreId of ["unknown","ujwa","nangloi","ashok-vihar"])
+    await assert.rejects(()=>p.handle(event("route",{centreId,coordinates:{lat:28.7,lng:77.3}})),/confirmed map location/);
+});
+test("registered Vasant Kunj origin uses the supplied Plus Code and pending pins stay disabled",t=>{
+  for(const key of ["JAL_KENDRA_NAME","JAL_KENDRA_LAT","JAL_KENDRA_LNG"]) {
+    const old=process.env[key];delete process.env[key];t.after(()=>{process.env[key]=old;});
+  }
+  assert.equal(p.origin().id,"vasant-kunj");
+  assert.deepEqual(p.origin().coordinates,{lat:28.5272875,lng:77.151515625});
+  assert.equal(p.centres().filter(c=>c.status==="READY").length,1);
+  assert.ok(p.centres().filter(c=>c.status!=="READY").every(c=>!c.coordinates));
+});
 test("population areas are deterministic and contain the selected point",()=>{const a=d.cell({lat:28.631,lng:77.211}),b=d.cell({lat:28.639,lng:77.219});assert.equal(a.id,b.id);assert.deepEqual(a.geometry.coordinates[0][0],[77.2,28.62]);});
 test("population rejects wrong-year and missing data and keeps source provenance",()=>{
   const input={total_population:127240.22,area_km2:4.3349,population_density:29352.23,data_year:2025};

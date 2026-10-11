@@ -2,10 +2,24 @@
 const c=require("./core"), demographics=require("./demographics"), priority=require("./priority");
 const {LocationClient,CalculateRouteCommand,SearchPlaceIndexForTextCommand}=require("@aws-sdk/client-location");
 const location=new LocationClient({maxAttempts:2});
+const {SESClient,GetIdentityVerificationAttributesCommand}=require("@aws-sdk/client-ses");
+const ses=new SESClient({maxAttempts:1});
+async function senderReady() {
+  const sender=process.env.OTP_FROM_EMAIL;
+  if(!sender)return false;
+  try {
+    const result=await ses.send(new GetIdentityVerificationAttributesCommand({Identities:[sender]}));
+    return result.VerificationAttributes?.[sender]?.VerificationStatus==="Success";
+  } catch(e) {console.error("OTP sender readiness unavailable",e.name);return false;}
+}
 function origin() {
   const name=process.env.JAL_KENDRA_NAME, lat=process.env.JAL_KENDRA_LAT, lng=process.env.JAL_KENDRA_LNG;
-  if(!name || !lat || !lng)return null;
+  if(!name || !lat || !lng)return require("./jal-kendras.json").find(p=>p.status==="READY")||null;
   return {name,coordinates:c.coords({lat:Number(lat),lng:Number(lng)})};
+}
+function centres() {
+  const configured=origin();
+  return configured&&!configured.id?[{...configured,id:"configured",status:"READY"}]:require("./jal-kendras.json");
 }
 function routeResult(result, start, destination) {
   const summary=result.Summary;
@@ -17,7 +31,7 @@ function routeResult(result, start, destination) {
 }
 async function handle(event) {
   const user=await c.authorize(event,"ReadOperations"), path=event.rawPath;
-  if(path.endsWith("/config"))return {origin:origin(),otpEnabled:!!process.env.OTP_FROM_EMAIL,deliveryMode:"SIMULATED",census:require("./population-reference.json")};
+  if(path.endsWith("/config"))return {origin:origin(),centres:centres(),otpEnabled:await senderReady(),deliveryMode:"SIMULATED",census:require("./population-reference.json")};
   const b=c.body(event);
   if(path.endsWith("/search")) {
     await c.rateLimit(user.sub,"place-search",1500);
@@ -32,7 +46,8 @@ async function handle(event) {
     return {weather,population,errors:results.filter(r=>r.status==="rejected").map(r=>r.reason.message)};
   }
   if(path.endsWith("/route")) {
-    const start=origin();c.check(start,"The operator must configure the Jal Kendra starting point first",503);
+    const start=b.centreId?centres().find(p=>p.id===b.centreId&&p.status==="READY"):origin();
+    c.check(start,"Choose a Jal Kendra with a confirmed map location",400);
     const destination=c.coords(b.coordinates);
     await c.rateLimit(user.sub,"plan-route",10000);
     const result=await location.send(new CalculateRouteCommand({CalculatorName:c.env("ROUTE_CALCULATOR_NAME"),DeparturePosition:[start.coordinates.lng,start.coordinates.lat],DestinationPosition:[destination.lng,destination.lat],TravelMode:"Truck",OptimizeFor:"FastestRoute",DistanceUnit:"Kilometers",IncludeLegGeometry:true,DepartNow:true}));
@@ -42,4 +57,4 @@ async function handle(event) {
   }
   throw new c.HttpError(404,"Planning endpoint not found");
 }
-module.exports={handle,origin,routeResult};
+module.exports={handle,origin,centres,routeResult,senderReady};

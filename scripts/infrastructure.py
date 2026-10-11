@@ -47,6 +47,7 @@ for name in ['JalKendraName','JalKendraLat','JalKendraLng','OtpFromEmail']:
  t['Parameters'][name]={'Type':'String','Default':''}
 r['IntakeFunction']['Properties']['Environment']['Variables'].update({'JAL_KENDRA_NAME':R('JalKendraName'),'JAL_KENDRA_LAT':R('JalKendraLat'),'JAL_KENDRA_LNG':R('JalKendraLng'),'OTP_FROM_EMAIL':R('OtpFromEmail'),'ROUTE_CALCULATOR_NAME':R('Routes'),'PLACE_INDEX_NAME':R('Places')})
 r['IntakeFunction']['Properties']['Policies'] += [stmt(['geo:CalculateRoute'],A('Routes')),stmt(['geo:SearchPlaceIndexForText'],A('Places')),{'Statement':[{'Effect':'Allow','Action':['ses:SendEmail'],'Resource':S('arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/*'),'Condition':{'StringEquals':{'ses:FromAddress':R('OtpFromEmail')}}}]}]
+r['IntakeFunction']['Properties']['Policies'].append(stmt(['ses:GetIdentityVerificationAttributes'],'*'))
 for name,path,method in [('PlanningConfig','config','GET'),('PlanningSearch','search','POST'),('PlanningContext','context','POST'),('PlanningRoute','route','POST'),('PlanningOtpSend','otp/send','POST'),('PlanningOtpVerify','otp/verify','POST')]:
  r['IntakeFunction']['Properties']['Events'][name]={'Type':'HttpApi','Properties':{'ApiId':R('Api'),'Path':'/api/v1/planning/'+path,'Method':method}}
 for name,path,method in [('Needs','/needs','GET'),('NeedsReport','/needs/report','POST'),('SimulationStart','/simulation','POST'),('SimulationRead','/simulation','GET')]:

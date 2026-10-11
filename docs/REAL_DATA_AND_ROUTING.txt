@@ -2,9 +2,11 @@ JAL-SETU: real planning data, simulated delivery
 
 Road route
 Destination search and road geometry use Amazon Location with HERE data.
-The server always uses JAL_KENDRA_NAME, JAL_KENDRA_LAT and JAL_KENDRA_LNG.
-The browser supplies only the destination. Missing origin configuration disables
-routing; it never substitutes an invented depot or straight line. Distance and
+The server uses backend/shared/jal-kendras.json; the browser supplies a destination
+and optional allowlisted centre ID. Vasant Kunj uses the supplied Plus Code;
+Ujwa, Nangloi and Ashok Vihar remain disabled pending exact map pins.
+JAL_KENDRA_NAME/LAT/LNG can override the registry with a single operator origin.
+Unknown or pending centres are rejected. No invented depot or straight line replaces a road route. Distance and
 estimated duration are provider results for truck travel. This is a recommended
 road route, not a proof of globally optimal fleet allocation or vehicle-specific
 clearance. Physical tanker movement and delivery remain simulated.
@@ -52,8 +54,10 @@ Successful confirmation updates SIM_DELIVERY only, adding zero actual litres.
 It never creates an AUDIT or verifies a physical delivery.
 
 Activation inputs
-Set JAL_KENDRA_NAME, JAL_KENDRA_LAT, JAL_KENDRA_LNG and OTP_FROM_EMAIL in root
-.env. Provide a real origin and verify the SES sender you control. SES sandbox
+Set OTP_FROM_EMAIL in root .env and verify the SES sender you control.
+The configured sender's SES verification status is checked by /planning/config;
+reload the page after clicking the AWS verification link to enable sending.
+The checked-in centre registry supplies the Vasant Kunj origin. SES sandbox
 requires verified recipients too; unrestricted recipient delivery requires AWS
 production access: https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html
 No sender identity is invented and no production-access request is automatic.

@@ -1,0 +1,6 @@
+[
+  {"id":"vasant-kunj","name":"Delhi Jal Board — Vasant Kunj tanker station","coordinates":{"lat":28.5272875,"lng":77.151515625},"status":"READY","source":"User-supplied Plus Code G5G2+WJ6, recovered as 7JWVG5G2+WJ6 near Vasant Kunj; corroborated by HERE tanker-station result approximately 6 metres away. Planning location, not verified operating inventory.","sourceUrl":"https://www.google.com/maps/search/?api=1&query=G5G2%2BWJ6+Vasant+Kunj+Delhi"},
+  {"id":"ujwa","name":"Delhi Jal Board — Ujwa Filling Point","status":"PIN_REQUIRED","sourceUrl":"https://www.google.com/maps/search/?api=1&query=Delhi+Jal+Board+Ujwa+Filling+Point"},
+  {"id":"nangloi","name":"Delhi Jal Board — Nangloi OHT","status":"PIN_REQUIRED","sourceUrl":"https://www.google.com/maps/search/?api=1&query=Delhi+Jal+Board+Nangloi+OHT"},
+  {"id":"ashok-vihar","name":"Delhi Jal Board — 194 Ashok Vihar Phase 1","status":"PIN_REQUIRED","sourceUrl":"https://www.google.com/maps/search/?api=1&query=Delhi+Jal+Board+194+Ashok+Vihar+Phase+1"}
+]

@@ -4,7 +4,8 @@ import {api} from "../services/api";
 type Point={lat:number;lng:number};
 type Place={label:string;coordinates:Point};
 type Route={id:string;origin:{name:string;coordinates:Point};destination:Point;distanceKm:number;durationMinutes:number;geometry:{coordinates:[number,number][]};source:string;algorithm:string};
-type Config={origin:Route["origin"]|null;otpEnabled:boolean;census:{year:number;sourceUrl:string;scope:string;districts:{name:string;population:number;densityPerKm2:number}[]}};
+type Centre=Route["origin"]&{id:string;status:string;sourceUrl?:string};
+type Config={origin:Route["origin"]|null;centres?:Centre[];otpEnabled:boolean;census:{year:number;sourceUrl:string;scope:string;districts:{name:string;population:number;densityPerKm2:number}[]}};
 type Context={weather:{dryDays:number;drySpellCapped:boolean;averageTemperatureC:number;rainfall30DaysMm:number;endDate:string;sourceUrl:string}|null;population:{status:string;population?:number;densityPerKm2?:number;areaKm2?:number;year:number;sourceUrl?:string;geometry?:{coordinates:[number,number][][]};message?:string}|null;errors:string[]};
 type Report={id:string;place:string;coordinates:Point;priority:{score:number}};
 function MapSelection({onPick}:{onPick:(point:Point)=>void}) {useMapEvents({click:e=>onPick({lat:e.latlng.lat,lng:e.latlng.lng})});return null;}
@@ -18,6 +19,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
   const [lat,setLat]=useState(""),[lng,setLng]=useState(""),[route,setRoute]=useState<Route|null>(null),[context,setContext]=useState<Context|null>(null);
   const [error,setError]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[code,setCode]=useState(""),[sent,setSent]=useState(false),[confirmed,setConfirmed]=useState(false);
   const [refresh,setRefresh]=useState(0);
+  const [centreId,setCentreId]=useState("");
   const selection=point?`${point.lat},${point.lng}`:"";
   const latest=useRef(selection);
   useEffect(()=>{latest.current=selection;},[selection]);
@@ -43,6 +45,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
   async function task(work:()=>Promise<void>) {setBusy(true);setError("");try{await work();}catch(e){setError((e as Error).message);}finally{setBusy(false);}}
   return <div className="space-y-3">
     <h3 className="font-bold">Jal Kendra route planner</h3>
+    {config?.centres&&<label className="block text-sm">Starting Jal Kendra<select className="block w-full border rounded p-2" disabled={busy} value={centreId||config.centres.find(c=>c.status==="READY")?.id||""} onChange={e=>{setCentreId(e.target.value);setRoute(null);setSent(false);setConfirmed(false);setCode("");setMessage("");}}>{config.centres.map(c=><option key={c.id} value={c.id} disabled={c.status!=="READY"}>{c.name}{c.status!=="READY"?" — exact map pin needed":""}</option>)}</select><span className="text-xs">Routes use the selected centre as the fixed starting point. Pending centres need an exact pin before routing is enabled.</span></label>}
     <p className="text-sm">Delivery is simulated. Roads, route distance, weather and sourced population estimates are real service results. {config?.origin?`Every route starts at ${config.origin.name}.`:"The operator must configure the fixed Jal Kendra starting point before routes can be calculated."}</p>
     <form className="flex gap-2" onSubmit={e=>{e.preventDefault();void task(async()=>{const result=await api<{places:Place[]}>("/planning/search",{query});setPlaces(result.places);if(!result.places.length)setMessage("No matching places. Select the map or enter coordinates.");});}}>
       <label className="flex-1">Destination address or locality<input required value={query} onChange={e=>setQuery(e.target.value)} maxLength={200} className="block w-full border rounded p-2" /></label>
@@ -57,7 +60,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     <MapContainer center={[28.63,77.18]} zoom={11} style={{height:400,width:"100%",zIndex:0}}>
       <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' />
       <MapSelection onPick={choose}/><View point={point} route={route}/>
-      {config?.origin&&<CircleMarker center={[config.origin.coordinates.lat,config.origin.coordinates.lng]} radius={10} pathOptions={{color:"#047857"}}><Popup>Start: {config.origin.name}</Popup></CircleMarker>}
+      {(config?.centres?.filter(c=>c.status==="READY")||(config?.origin?[config.origin]:[])).map(c=><CircleMarker key={c.name} center={[c.coordinates.lat,c.coordinates.lng]} radius={10} pathOptions={{color:"#047857"}}><Popup>Jal Kendra: {c.name}</Popup></CircleMarker>)}
       {point&&<CircleMarker center={[point.lat,point.lng]} radius={9} pathOptions={{color:"#2563eb"}}><Popup>Selected destination</Popup></CircleMarker>}
       {reports.map(r=><CircleMarker key={r.id} center={[r.coordinates.lat,r.coordinates.lng]} radius={8+r.priority.score/10} pathOptions={{color:r.priority.score>=60?"#b91c1c":"#b45309"}}><Popup>{r.place} · priority {r.priority.score}/100 · resident report</Popup></CircleMarker>)}
       {context?.population?.geometry&&<Polygon positions={context.population.geometry.coordinates[0].map(([x,y])=>[y,x] as [number,number])} pathOptions={{color:"#9333ea",fillOpacity:0.1}}><Popup>WorldPop population sampling area (2025)</Popup></Polygon>}
@@ -66,7 +69,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     {error&&<p role="alert" className="text-red-800">{error}</p>}
     {message&&<p role="status">{message}</p>}
     <div className="flex flex-wrap gap-2">
-      <button className="primary-action" disabled={busy||!point||!config?.origin} onClick={()=>void task(async()=>{const key=selection;const result=await api<Route>("/planning/route",{coordinates:point});if(latest.current===key){setRoute(result);setSent(false);setConfirmed(false);setCode("");setMessage("");}})}>Calculate road route</button>
+      <button className="primary-action" disabled={busy||!point||!config?.origin} onClick={()=>void task(async()=>{const key=selection;const result=await api<Route>("/planning/route",{coordinates:point,...(centreId?{centreId}:{})});if(latest.current===key){setRoute(result);setSent(false);setConfirmed(false);setCode("");setMessage("");}})}>Calculate road route</button>
       <button className="secondary-action" disabled={!point||busy} onClick={()=>{setContext(null);setError("");setRefresh(n=>n+1);}}>Refresh location data</button>
     </div>
     {route&&<div className="rounded-xl bg-sky-50 p-4"><strong>{route.distanceKm.toFixed(1)} km · approximately {route.durationMinutes} minutes</strong><p className="text-sm">{route.algorithm} from {route.origin.name}. Source: {route.source}. Travel time is an estimate; vehicle dimensions and live road closures may change suitability.</p>

@@ -16,6 +16,24 @@ async function signIn(page: Page, role: string, connected = true) {
   await expect(page.locator('.auth-profile-status')).toContainText(connected ? 'Live AWS Connected' : 'Connecting to AWS');
 }
 
+test('centre selector disables unresolved pins and submits only a registered centre ID',async({page})=>{
+  const start={name:'Confirmed centre',coordinates:{lat:28.5272875,lng:77.151515625}};
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
+  await page.route('**/api/v1/planning/config',r=>r.fulfill({json:{origin:start,centres:[{...start,id:'vasant-kunj',status:'READY'},{id:'ujwa',name:'Ujwa',status:'PIN_REQUIRED'}],otpEnabled:false}}));
+  let body:Record<string,unknown>|undefined;
+  await page.route('**/api/v1/planning/route',r=>{body=r.request().postDataJSON();return r.fulfill({status:503,json:{message:'Provider temporarily unavailable'}});});
+  await signIn(page,'Citizen');
+  const select=page.getByLabel('Starting Jal Kendra');
+  await expect(select.locator('option[value="ujwa"]')).toHaveJSProperty('disabled',true);
+  await select.selectOption('vasant-kunj');
+  await page.getByLabel('Destination latitude').fill('28.63');
+  await page.getByLabel('Destination longitude').fill('77.21');
+  await page.getByRole('button',{name:'Use coordinates'}).click();
+  await page.getByRole('button',{name:'Calculate road route'}).click();
+  await expect.poll(()=>body?.centreId).toBe('vasant-kunj');
+  expect(body?.origin).toBeUndefined();
+});
+
 test('resident selects a real map point and submits explicit household counts',async({page})=>{
   await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
   let body:Record<string,unknown>|undefined;

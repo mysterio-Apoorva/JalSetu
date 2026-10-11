@@ -541,6 +541,17 @@
                 }
               }
             ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "ses:GetIdentityVerificationAttributes"
+                ],
+                "Resource": "*"
+              }
+            ]
           }
         ],
         "Events": {
