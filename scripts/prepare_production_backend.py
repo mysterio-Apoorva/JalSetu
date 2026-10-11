@@ -60,11 +60,14 @@ def main():
     code = archive.read_bytes(); digest = hashlib.sha256(code).hexdigest()
     key = f'production-releases/{digest}.zip'
     print('Uploading backend artifact',flush=True)
-    session.client('s3',config=options).put_object(Bucket=bucket,Key=key,Body=code,ServerSideEncryption='AES256')
+    upload_options = Config(connect_timeout=20, read_timeout=90, retries={'max_attempts':2}, s3={'us_east_1_regional_endpoint':'regional'})
+    session.client('s3',config=upload_options).put_object(Bucket=bucket,Key=key,Body=code,ServerSideEncryption='AES256')
     for resource in template['Resources'].values():
         if resource['Type'] == 'AWS::Serverless::Function': resource['Properties']['CodeUri'] = {'Bucket':bucket,'Key':key}
     previous = {p['ParameterKey']:p['ParameterValue'] for p in stack.get('Parameters',[])}
     values = {**previous,'AllowedOrigin':args.origin.rstrip('/'),'DataNamespace':'LIVE','BlockedSubjects':','.join(blocked)}
+    for parameter, setting in [('JalKendraName','JAL_KENDRA_NAME'),('JalKendraLat','JAL_KENDRA_LAT'),('JalKendraLng','JAL_KENDRA_LNG'),('OtpFromEmail','OTP_FROM_EMAIL')]:
+        if settings.get(setting): values[parameter] = settings[setting]
     parameters = [{'ParameterKey':k,'ParameterValue':values[k]} for k in template['Parameters'] if k in values]
     change = cf.create_change_set(StackName=settings['STACK_NAME'],ChangeSetName='production-'+str(time.time_ns()),ChangeSetType='UPDATE',
         TemplateBody=json.dumps(template),Capabilities=['CAPABILITY_IAM'],Parameters=parameters)

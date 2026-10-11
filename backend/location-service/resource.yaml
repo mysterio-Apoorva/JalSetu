@@ -30,6 +30,18 @@
         "DataSource": "Here"
       }
     },
+    "Places": {
+      "Type": "AWS::Location::PlaceIndex",
+      "Properties": {
+        "IndexName": {
+          "Fn::Sub": "${AWS::StackName}-destinations"
+        },
+        "DataSource": "Here",
+        "DataSourceConfiguration": {
+          "IntendedUse": "Storage"
+        }
+      }
+    },
     "Map": {
       "Type": "AWS::Location::Map",
       "Properties": {

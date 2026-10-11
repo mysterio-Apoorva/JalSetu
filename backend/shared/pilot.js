@@ -8,17 +8,19 @@ async function handle(event) {
   const user=await c.authorize(event, path.endsWith("/report") ? "SubmitWaterRequest":"ReadOperations");
   if(path.endsWith("/needs") && method==="GET") {
     const items=(await c.query("NEED")).filter(n=>Date.now()-Date.parse(n.updatedAt)<7*86400000);
-    return {reports:items.map(({id,place,coordinates,weather,priority:rank,updatedAt})=>({id,place,coordinates,weather,priority:{score:rank.score,version:rank.version},updatedAt})).sort((a,b)=>b.priority.score-a.priority.score), own:items.find(n=>n.ownerId===user.sub) ? c.publicRequest(items.find(n=>n.ownerId===user.sub)) : null, imageGenerationEnabled:Number(process.env.SIMULATION_DAILY_LIMIT)>0};
+    return {reports:items.map(({id,place,coordinates,weather,population,priority:rank,updatedAt})=>({id,place,coordinates,weather,population,priority:{score:rank.score,version:rank.version},updatedAt})).sort((a,b)=>b.priority.score-a.priority.score), own:items.find(n=>n.ownerId===user.sub) ? c.publicRequest(items.find(n=>n.ownerId===user.sub)) : null, imageGenerationEnabled:Number(process.env.SIMULATION_DAILY_LIMIT)>0};
   }
   if(path.endsWith("/report") && method==="POST") {
     const b=c.body(event), point=c.coords(b.coordinates);
     c.check(point.lat>=28.35 && point.lat<=28.95 && point.lng>=76.8 && point.lng<=77.4,"Select a location within the Delhi pilot area");
     const input=priority.counts(b), place=c.text(b.place,"place name",100);
-    await c.rateLimit(user.sub,"need-report",60000);
     // Publish only an approximate map point, never the household's exact GPS.
     const coordinates={lat:Number(point.lat.toFixed(3)),lng:Number(point.lng.toFixed(3))};
-    const weather=await priority.weatherAt(coordinates), rank=priority.score(input,weather), id=c.hash(user.sub).slice(0,24), now=new Date().toISOString();
-    const item={...c.key("NEED",id),GSI1PK:c.partition("NEED"),GSI1SK:id,id,ownerId:user.sub,place,coordinates,...input,weather,priority:rank,updatedAt:now};
+    const [weather,population]=await Promise.all([priority.weatherAt(coordinates),require("./demographics").at(coordinates)]);
+    c.check(population.status === "COMPLETE", "Population data is still processing. Refresh location data before submitting your report.",503);
+    await c.rateLimit(user.sub,"need-report",60000);
+    const rank=priority.score(input,weather,population), id=c.hash(user.sub).slice(0,24), now=new Date().toISOString();
+    const item={...c.key("NEED",id),GSI1PK:c.partition("NEED"),GSI1SK:id,id,ownerId:user.sub,place,coordinates,...input,weather,population,priority:rank,updatedAt:now};
     await c.db.send(new c.PutCommand({TableName:c.env("TABLE_NAME"),Item:item}));
     return {report:c.publicRequest(item)};
   }

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
-import { CircleMarker, MapContainer, Popup, TileLayer, useMapEvents } from "react-leaflet";
+import { RoutePlanner } from "./RoutePlanner";
 import { api } from "../services/api";
 type Point = {lat:number; lng:number};
 type Report = {id:string;place:string;coordinates:Point;daysWithoutWater?:number;infants?:number;elders?:number;updatedAt:string;weather:{dryDays:number;drySpellCapped:boolean;averageTemperatureC:number;endDate:string;sourceUrl:string};priority:{score:number;components:Record<string,number>}};
-function Picker({onPick}:{onPick:(p:Point)=>void}) { useMapEvents({click:e=>onPick({lat:e.latlng.lat,lng:e.latlng.lng})}); return null; }
 export function PilotNeeds({canReport}:{canReport:boolean}) {
   const [reports,setReports]=useState<Report[]>([]),[point,setPoint]=useState<Point|null>(null);
   const [place,setPlace]=useState(""),[days,setDays]=useState(""),[infants,setInfants]=useState(""),[elders,setElders]=useState("");
@@ -27,12 +26,7 @@ export function PilotNeeds({canReport}:{canReport:boolean}) {
     <p className="text-sm">Real map and weather integration. Household needs are self-reported. Delivery partners are not onboarded; submitting here does not book a tanker.</p>
     <p className="text-xs text-slate-600">Reports expire from this board after 7 days. Each account has one active household report. Scores use weather through the date shown, not a live drought declaration.</p>
     {error && <p role="alert" className="text-red-800">{error}</p>}{message && <p role="status">{message}</p>}
-    <MapContainer center={[28.63,77.18]} zoom={11} style={{height:360,width:"100%",zIndex:0}}>
-      <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' />
-      {canReport && <Picker onPick={setPoint} />}
-      {point && <CircleMarker center={[point.lat,point.lng]} radius={9} pathOptions={{color:"#2563eb"}}><Popup>Selected location</Popup></CircleMarker>}
-      {reports.map(r=><CircleMarker key={r.id} center={[r.coordinates.lat,r.coordinates.lng]} radius={8+r.priority.score/10} pathOptions={{color:r.priority.score>=60?"#b91c1c":"#b45309"}}><Popup>{r.place} · priority {r.priority.score}/100 · resident report</Popup></CircleMarker>)}
-    </MapContainer>
+    <RoutePlanner point={point} onPick={(p,label)=>{setPoint(p);if(label)setPlace(label.slice(0,100));}} reports={reports} canConfirm={canReport}/>
     {canReport && <form className="grid sm:grid-cols-2 gap-3" onSubmit={async e=>{
       e.preventDefault();if(!point){setError("Select your location on the map first.");return;}setBusy(true);setError("");setMessage("");
       try{await api("/needs/report",{place,coordinates:point,daysWithoutWater:Number(days),infants:Number(infants),elders:Number(elders)});await refresh();setMessage("Your household report was saved and ranked using recent weather. This is not a delivery booking.");}catch(e){setError((e as Error).message);}finally{setBusy(false);}
@@ -45,7 +39,7 @@ export function PilotNeeds({canReport}:{canReport:boolean}) {
       <p className="text-xs sm:col-span-2">Enter actual counts, including 0 when there are none. Counts are used for priority; they are not published individually. Location: {point?`${point.lat.toFixed(3)}, ${point.lng.toFixed(3)}`:"not selected"}.</p>
       <button className="primary-action" disabled={busy}>{busy?"Fetching weather and saving…":"Save household needs report"}</button>
     </form>}
-    <details><summary>How priority is calculated</summary><p className="text-sm">Outage days: up to 35 points at 14 days. Consecutive days with rainfall below 1 mm: up to 20 points at 30 days. Seven-day average temperature: 0–15 points from 25–40°C. Infants and elders: each up to 15 points at 5 people. Values above these thresholds are capped. These are transparent pilot weights, not an official or clinically validated allocation policy. Weather is archived model output from <a href="https://open-meteo.com/en/docs" className="underline">Open-Meteo</a> (CC BY 4.0). The free API is for non-commercial use.</p></details>
+    <details><summary>How priority is calculated</summary><p className="text-sm">Version 2: outage days contribute up to 30 points at 14 days; consecutive days below 1 mm rainfall up to 15 points at 30 days; seven-day mean temperature up to 10 points from 25–40°C; infants up to 15 points at 5 people; elders up to 20 points at 5 people; WorldPop population density up to 10 points at 30,000 people/km². Values are capped. Counts and outages are resident-reported; weather and density are fetched by the server. Missing data blocks a new score. These are transparent pilot allocation weights, not a validated prediction model. Weather comes from <a href="https://open-meteo.com/en/docs" className="underline">Open-Meteo</a> (CC BY 4.0; free API for non-commercial use). Historical version-1 reports did not use population density.</p></details>
     {reports.length===0?<p>No recent household reports. No example locations or vulnerability counts have been inserted.</p>:<div className="overflow-auto"><table className="w-full text-sm text-left"><thead><tr><th>Reported locality</th><th>Priority</th><th>Dry spell</th><th>7-day average</th><th>Weather through</th></tr></thead><tbody>{reports.map(r=><tr key={r.id}><td className="py-3">{r.place}</td><td>{r.priority.score}/100</td><td>{r.weather.dryDays}{r.weather.drySpellCapped?"+":""} days</td><td>{r.weather.averageTemperatureC}°C</td><td>{r.weather.endDate}</td></tr>)}</tbody></table></div>}
     {canReport && <div className="border-t pt-4 space-y-3"><h3 className="font-bold">AI delivery-scene simulation</h3><p className="text-sm">Generates a new fictional scene for each daily simulation. It is never delivery evidence and adds zero verified litres. One simulation per account per UTC day; the operator also sets a shared daily limit.</p><button className="secondary-action" disabled={busy||!enabled} onClick={async()=>{setBusy(true);setError("");try{const result=await api<{id:string;status:string}>("/simulation",{});setJob(await api(`/simulation?id=${encodeURIComponent(result.id)}`));}catch(e){setError((e as Error).message);}finally{setBusy(false);}}}>{enabled?"Generate / load today's simulated scene":"AI simulation awaits operator budget configuration"}</button>{job&&<p role="status">Simulation: {job.status}. {job.message}</p>}{job?.imageDataUrl&&<img className="max-w-full w-96 rounded" src={job.imageDataUrl} alt="AI-generated simulated tanker delivery. Not evidence of a real delivery."/>}</div>}
     {job && <button className="secondary-action" disabled={busy} onClick={async()=>{

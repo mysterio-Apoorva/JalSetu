@@ -1,6 +1,9 @@
 import { mockAuth, login } from "./auth-fixture";
 import { test, expect } from "@playwright/test";
-test.beforeEach(async({page})=>{await page.route("**/api/v1/needs",r=>r.fulfill({json:{reports:[],imageGenerationEnabled:false}}));});
+test.beforeEach(async({page})=>{
+  await page.route("**/api/v1/needs",r=>r.fulfill({json:{reports:[],imageGenerationEnabled:false}}));
+  await page.route("**/api/v1/planning/config",r=>r.fulfill({json:{origin:null,otpEnabled:false}}));
+});
 const wards = [
   {
     id: "w1",

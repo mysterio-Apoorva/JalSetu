@@ -56,6 +56,22 @@
       "Default": 0,
       "MinValue": 0,
       "MaxValue": 100
+    },
+    "JalKendraName": {
+      "Type": "String",
+      "Default": ""
+    },
+    "JalKendraLat": {
+      "Type": "String",
+      "Default": ""
+    },
+    "JalKendraLng": {
+      "Type": "String",
+      "Default": ""
+    },
+    "OtpFromEmail": {
+      "Type": "String",
+      "Default": ""
     }
   },
   "Globals": {
@@ -352,6 +368,18 @@
         "DataSource": "Here"
       }
     },
+    "Places": {
+      "Type": "AWS::Location::PlaceIndex",
+      "Properties": {
+        "IndexName": {
+          "Fn::Sub": "${AWS::StackName}-destinations"
+        },
+        "DataSource": "Here",
+        "DataSourceConfiguration": {
+          "IntendedUse": "Storage"
+        }
+      }
+    },
     "Map": {
       "Type": "AWS::Location::Map",
       "Properties": {
@@ -461,6 +489,58 @@
                 }
               }
             ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "geo:CalculateRoute"
+                ],
+                "Resource": {
+                  "Fn::GetAtt": [
+                    "Routes",
+                    "Arn"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "geo:SearchPlaceIndexForText"
+                ],
+                "Resource": {
+                  "Fn::GetAtt": [
+                    "Places",
+                    "Arn"
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "ses:SendEmail"
+                ],
+                "Resource": {
+                  "Fn::Sub": "arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/*"
+                },
+                "Condition": {
+                  "StringEquals": {
+                    "ses:FromAddress": {
+                      "Ref": "OtpFromEmail"
+                    }
+                  }
+                }
+              }
+            ]
           }
         ],
         "Events": {
@@ -534,6 +614,66 @@
                 "Ref": "Api"
               },
               "Path": "/api/v1/fleet/refill",
+              "Method": "POST"
+            }
+          },
+          "PlanningConfig": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/config",
+              "Method": "GET"
+            }
+          },
+          "PlanningSearch": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/search",
+              "Method": "POST"
+            }
+          },
+          "PlanningContext": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/context",
+              "Method": "POST"
+            }
+          },
+          "PlanningRoute": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/route",
+              "Method": "POST"
+            }
+          },
+          "PlanningOtpSend": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/otp/send",
+              "Method": "POST"
+            }
+          },
+          "PlanningOtpVerify": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/planning/otp/verify",
               "Method": "POST"
             }
           },
@@ -632,6 +772,24 @@
             },
             "POD_BUCKET_NAME": {
               "Ref": "EvidenceBucket"
+            },
+            "JAL_KENDRA_NAME": {
+              "Ref": "JalKendraName"
+            },
+            "JAL_KENDRA_LAT": {
+              "Ref": "JalKendraLat"
+            },
+            "JAL_KENDRA_LNG": {
+              "Ref": "JalKendraLng"
+            },
+            "OTP_FROM_EMAIL": {
+              "Ref": "OtpFromEmail"
+            },
+            "ROUTE_CALCULATOR_NAME": {
+              "Ref": "Routes"
+            },
+            "PLACE_INDEX_NAME": {
+              "Ref": "Places"
             }
           }
         },

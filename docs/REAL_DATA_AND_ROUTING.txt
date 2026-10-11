@@ -1,0 +1,68 @@
+JAL-SETU: real planning data, simulated delivery
+
+Road route
+Destination search and road geometry use Amazon Location with HERE data.
+The server always uses JAL_KENDRA_NAME, JAL_KENDRA_LAT and JAL_KENDRA_LNG.
+The browser supplies only the destination. Missing origin configuration disables
+routing; it never substitutes an invented depot or straight line. Distance and
+estimated duration are provider results for truck travel. This is a recommended
+road route, not a proof of globally optimal fleet allocation or vehicle-specific
+clearance. Physical tanker movement and delivery remain simulated.
+
+Weather
+Open-Meteo: https://open-meteo.com/en/docs
+30 complete daily observations from the provider's model output, through
+yesterday in Asia/Kolkata; seven-day mean temperature and consecutive days with
+less than 1 mm precipitation. Source/date are displayed. Missing weather is not
+zero-filled. Free service is for non-commercial use; see provider terms.
+
+Population
+WorldPop Global 2, 2025, 100 m population raster, CC BY 4.0:
+https://api.worldpop.org/v2/
+https://api.worldpop.org/v2/openapi.json
+Each point selects a fixed 0.02-degree geographic cell, drawn on the map.
+The provider calculates population, area and people/km2 for that cell. These
+are modeled estimates for 2025, not current census counts or household surveys.
+Provider jobs are asynchronous and cached by cell/year in DynamoDB. No API keys
+are needed at the standard API limit; see provider documentation for quotas.
+Historical reference table: Delhi DES Statistical Abstract 2022, Table 12.8,
+Census 2011 district population and density:
+https://des.delhi.gov.in/sites/default/files/DES/generic_multiple_files/sabstract2022.pdf
+Historical district boundaries differ from current boundaries. These values
+are shown as a comparison table, never silently applied to a user's location.
+
+Priority policy version 2
+Water outage: 30 points at 14 days; dry spell: 15 at 30 days;
+temperature: 10 from 25 to 40 C; infants: 15 at 5 people;
+elders aged 60+: 20 at 5 people; density: 10 at 30,000 people/km2.
+Each contribution is capped; the sum is rounded to 0-100. Household ages/outage
+are resident-reported. Weather and density are loaded server-side. A new score
+requires both sources, so missing population/weather cannot be fabricated.
+This is a transparent allocation policy, not a clinically validated or trained
+prediction model. Older version-1 reports did not include density. Stored
+reports show their input date and expire from the board after seven days.
+
+Real email OTP for simulated delivery
+Signup verification continues to use Cognito. Trip-confirmation email uses SES
+and the signed-in account's verified email, never an arbitrary browser address.
+Only salted-by-trip SHA-256 hashes are stored. Codes expire after 10 minutes,
+have five attempts, require a 60-second resend interval and are single-use.
+A send failure invalidates the code. No raw OTP is returned by the API.
+Successful confirmation updates SIM_DELIVERY only, adding zero actual litres.
+It never creates an AUDIT or verifies a physical delivery.
+
+Activation inputs
+Set JAL_KENDRA_NAME, JAL_KENDRA_LAT, JAL_KENDRA_LNG and OTP_FROM_EMAIL in root
+.env. Provide a real origin and verify the SES sender you control. SES sandbox
+requires verified recipients too; unrestricted recipient delivery requires AWS
+production access: https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html
+No sender identity is invented and no production-access request is automatic.
+Run scripts/infrastructure.py, prepare_production_backend.py and the reviewed
+finish_pilot_release.py --execute workflow, then publish the frontend normally.
+The release script preserves existing settings unless a nonempty override is
+provided. An empty sender leaves the OTP button disabled with a clear message.
+
+Verification boundaries
+Regression tests mock provider responses. Actual provider probes and deployed
+Lambda checks are recorded separately under ignored .runtime files. Without a
+verified sender/recipient, inbox delivery cannot be claimed as tested.

@@ -1,0 +1,17 @@
+{
+  "source": "Delhi Directorate of Economics and Statistics, Statistical Abstract 2022, Table 12.8",
+  "sourceUrl": "https://des.delhi.gov.in/sites/default/files/DES/generic_multiple_files/sabstract2022.pdf",
+  "year": 2011,
+  "scope": "Historical census districts; boundaries differ from current districts. Context only, never substituted for a selected location's WorldPop estimate.",
+  "districts": [
+    {"name":"North-West","population":3656539,"densityPerKm2":8254},
+    {"name":"North","population":887978,"densityPerKm2":14557},
+    {"name":"North-East","population":2241624,"densityPerKm2":36155},
+    {"name":"East","population":1709346,"densityPerKm2":27132},
+    {"name":"New Delhi","population":142004,"densityPerKm2":4057},
+    {"name":"Central","population":582320,"densityPerKm2":27730},
+    {"name":"West","population":2543243,"densityPerKm2":19563},
+    {"name":"South-West","population":2292958,"densityPerKm2":5446},
+    {"name":"South","population":2731929,"densityPerKm2":11060}
+  ]
+}

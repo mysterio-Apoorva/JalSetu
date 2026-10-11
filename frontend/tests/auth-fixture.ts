@@ -24,6 +24,8 @@ export function tokens(role = "Citizen", lifetime = 3600) {
   };
 }
 export async function mockAuth(page: Page, role = "Citizen") {
+  // Auth/contract tests must not wait on an unrelated external font service.
+  await page.route("https://fonts.googleapis.com/**", route => route.fulfill({contentType:"text/css",body:""}));
   const result = tokens(role);
   await page.route("https://cognito-idp.us-east-1.amazonaws.com/", (route) =>
     route.fulfill({ json: { AuthenticationResult: result } }),
@@ -31,6 +33,6 @@ export async function mockAuth(page: Page, role = "Citizen") {
   return result;
 }
 export async function login(page: Page, role = "Citizen") {
-  await page.goto("/");
+  await page.goto("/", {waitUntil:"domcontentloaded"});
   await page.getByRole("button", { name: `${role} Demo` }).click();
 }

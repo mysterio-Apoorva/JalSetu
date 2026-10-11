@@ -4,6 +4,8 @@ Water needs, vulnerability-aware prioritization, and accountable tanker operatio
 
 ## Current pilot
 
+The map supports destination search, fixed-Jal-Kendra road routing, real weather and WorldPop population-density lookup. Delivery stays simulated; its confirmation uses a real email OTP once an AWS email sender is verified. See [data sources, priority formula and activation inputs](docs/REAL_DATA_AND_ROUTING.txt). The operator must supply the Jal Kendra coordinates and email sender; missing configuration is shown explicitly.
+
 The production frontend uses real Cognito authentication and AWS APIs. Residents select a map location and report water-outage days, infants under one year, and elders aged 60+. The backend retrieves recent Open-Meteo weather, calculates a transparent priority score, and persists the report in DynamoDB. Failed weather retrieval does not produce an invented score.
 
 These are self-reported household counts, **not verified ward-wide elderly population statistics**. The allocation weights are pilot policy, not a trained or validated forecasting model. The board shows the weather-through date and removes reports after seven days. See [priority methodology and data sources](docs/PILOT_DEPLOYMENT.txt).

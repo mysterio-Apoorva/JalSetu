@@ -1,7 +1,11 @@
 import { test, expect, type Page } from '@playwright/test';
 import { mockAuth } from './auth-fixture';
 const empty = { wards: [], depots: [], fleet: [], requests: [], anomalies: [] };
-test.beforeEach(async ({page})=>{await page.route('**/api/v1/needs',r=>r.fulfill({json:{reports:[],own:null,imageGenerationEnabled:false}}));});
+test.beforeEach(async ({page})=>{
+  await page.route('**/api/v1/needs',r=>r.fulfill({json:{reports:[],own:null,imageGenerationEnabled:false}}));
+  await page.route('**/api/v1/planning/config',r=>r.fulfill({json:{origin:{name:'Test Jal Kendra',coordinates:{lat:28.6,lng:77.2}},otpEnabled:true}}));
+  await page.route('**/api/v1/planning/context',r=>r.fulfill({json:{weather:{dryDays:6,averageTemperatureC:32,rainfall30DaysMm:12,endDate:'2026-10-10',sourceUrl:'https://open-meteo.com/en/docs'},population:{status:'COMPLETE',population:10000,densityPerKm2:2500,areaKm2:4,year:2025,sourceUrl:'https://api.worldpop.org/v2/'},errors:[]}}));
+});
 async function signIn(page: Page, role: string, connected = true) {
   await mockAuth(page, role);
   await page.goto('/');
@@ -38,6 +42,47 @@ test('invalid workspace data is reported without crashing or displaying invented
   await signIn(page,'Citizen',false);
   await expect(page.getByRole('alert')).toContainText('Workspace service returned an invalid response');
   await expect(page.getByText('Waiting for your authorized AWS workspace. Connection retries automatically.')).toBeVisible();
+});
+
+test('road route uses selected destination and email OTP confirms only the simulation',async({page})=>{
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
+  await page.route('**/api/v1/planning/route',r=>{
+    expect(r.request().postDataJSON()).toEqual({coordinates:{lat:28.63,lng:77.21}});
+    return r.fulfill({json:{id:'route-1',origin:{name:'Test Jal Kendra',coordinates:{lat:28.6,lng:77.2}},destination:{lat:28.63,lng:77.21},distanceKm:8.3,durationMinutes:21,geometry:{coordinates:[[77.2,28.6],[77.205,28.62],[77.21,28.63]]},source:'Amazon Location / HERE',algorithm:'Provider-recommended truck road route'}});
+  });
+  await page.route('**/api/v1/planning/otp/send',r=>{
+    expect(r.request().postDataJSON()).toEqual({id:'route-1'});
+    return r.fulfill({json:{sent:true,destination:'r***@example.org'}});
+  });
+  await page.route('**/api/v1/planning/otp/verify',r=>{
+    expect(r.request().postDataJSON()).toEqual({id:'route-1',code:'123456'});
+    return r.fulfill({json:{confirmed:true,simulatedDelivery:true,verifiedLiters:0}});
+  });
+  await signIn(page,'Citizen');
+  await page.getByLabel('Destination latitude').fill('28.63');
+  await page.getByLabel('Destination longitude').fill('77.21');
+  await page.getByRole('button',{name:'Use coordinates'}).click();
+  await expect(page.getByText('2,500 people/km²')).toBeVisible();
+  await page.getByRole('button',{name:'Calculate road route'}).click();
+  await expect(page.getByText('8.3 km · approximately 21 minutes')).toBeVisible();
+  await page.getByRole('button',{name:'Email confirmation code',exact:true}).click();
+  await expect(page.getByText(/A real confirmation code was emailed/)).toBeVisible();
+  await page.getByLabel('Email confirmation code',{exact:true}).fill('123456');
+  await page.getByRole('button',{name:'Confirm simulation'}).click();
+  await expect(page.getByText('Email code verified. Simulated delivery confirmed; no real water delivery recorded.')).toBeVisible();
+  await page.setViewportSize({width:360,height:800});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+  await page.screenshot({path:'../.runtime/planning-mobile.png',fullPage:true});
+});
+
+test('unconfigured origin and unavailable provider data never show a fabricated route or density',async({page})=>{
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
+  await page.route('**/api/v1/planning/config',r=>r.fulfill({json:{origin:null,otpEnabled:false}}));
+  await page.route('**/api/v1/planning/context',r=>r.fulfill({json:{weather:null,population:null,errors:['Provider unavailable']}}));
+  await signIn(page,'Citizen');
+  await page.locator('.leaflet-container').first().click({position:{x:180,y:140}});
+  await expect(page.getByRole('button',{name:'Calculate road route'})).toBeDisabled();
+  await expect(page.getByText('Population unavailable. No density value is invented.')).toBeVisible();
 });
 test('invalid needs response does not crash the signed-in workspace',async({page})=>{
   await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));

@@ -24,16 +24,19 @@ function summarize(daily, yesterday) {
     rainfall30DaysMm:Math.round(rows.reduce((n,r)=>n+r.rain,0)*10)/10, startDate:rows[0].date, endDate:rows.at(-1).date,
     source:"Open-Meteo archived weather model output", sourceUrl:"https://open-meteo.com/en/docs", daily:rows };
 }
-function score(input, weather) {
+function score(input, weather, population) {
   const n = counts(input);
+  c.check(weather && Number.isFinite(weather.dryDays) && weather.dryDays >= 0 && Number.isFinite(weather.averageTemperatureC), "Valid weather is required to calculate priority", 503);
+  if (population) c.check(population.status === "COMPLETE" && Number.isFinite(population.densityPerKm2) && population.densityPerKm2 >= 0, "Population density is not ready; no score has been invented", 503);
   const components = {
-    waterOutage:35*clamp(n.daysWithoutWater/14),
-    drySpell:20*clamp(weather.dryDays/30),
-    heat:15*clamp((weather.averageTemperatureC-25)/15),
+    waterOutage:(population?30:35)*clamp(n.daysWithoutWater/14),
+    drySpell:(population?15:20)*clamp(weather.dryDays/30),
+    heat:(population?10:15)*clamp((weather.averageTemperatureC-25)/15),
     infants:15*clamp(n.infants/5),
-    elders:15*clamp(n.elders/5),
+    elders:(population?20:15)*clamp(n.elders/5),
+    ...(population?{populationDensity:10*clamp(population.densityPerKm2/30000)}:{}),
   };
-  return {score:Math.round(Object.values(components).reduce((a,b)=>a+b,0)), components, version:"pilot-priority-v1",
+  return {score:Math.round(Object.values(components).reduce((a,b)=>a+b,0)), components, version:population?"pilot-priority-v2":"pilot-priority-v1",
     explanation:"Pilot allocation rule, not a validated emergency or official drought classification. Water outage and age counts are resident-reported. Infants: under 1 year; elders: 60+."};
 }
 async function weatherAt(point) {

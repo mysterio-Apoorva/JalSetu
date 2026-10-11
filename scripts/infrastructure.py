@@ -25,6 +25,7 @@ r['EvidenceTlsPolicy']={'Type':'AWS::S3::BucketPolicy','Properties':{'Bucket':R(
 r['Geofences']={'Type':'AWS::Location::GeofenceCollection','Properties':{'CollectionName':R('GeofenceName')}}
 r['Tracker']={'Type':'AWS::Location::Tracker','Properties':{'TrackerName':R('TrackerName'),'PositionFiltering':'TimeBased'}}
 r['Routes']={'Type':'AWS::Location::RouteCalculator','Properties':{'CalculatorName':R('RouteCalculatorName'),'DataSource':'Here'}}
+r['Places']={'Type':'AWS::Location::PlaceIndex','Properties':{'IndexName':S('${AWS::StackName}-destinations'),'DataSource':'Here','DataSourceConfiguration':{'IntendedUse':'Storage'}}}
 r['Map']={'Type':'AWS::Location::Map','Properties':{'MapName':R('MapName'),'Configuration':{'Style':'VectorHereExplore'}}}
 def stmt(actions,resources):return {'Statement':[{'Effect':'Allow','Action':actions,'Resource':resources}]}
 dbpolicy=stmt(['dynamodb:GetItem','dynamodb:BatchGetItem','dynamodb:PutItem','dynamodb:UpdateItem','dynamodb:Query','dynamodb:TransactWriteItems'],[A('CoreTable'),S('${CoreTable.Arn}/index/*')])
@@ -42,6 +43,12 @@ r['IntakeFunction']['Properties']['Timeout']=120
 r['SurgeQueue']['Properties']['VisibilityTimeout']=720
 r['IntakeFunction']['Properties']['Environment']['Variables'].update({'SIMULATION_DAILY_LIMIT':R('SimulationDailyLimit'),'POD_BUCKET_NAME':R('EvidenceBucket')})
 r['IntakeFunction']['Properties']['Policies'] += [stmt(['bedrock:InvokeModel'],S('arn:${AWS::Partition}:bedrock:${AWS::Region}::foundation-model/amazon.nova-canvas-v1:0')),stmt(['s3:PutObject','s3:GetObject'],S('${EvidenceBucket.Arn}/simulations/*'))]
+for name in ['JalKendraName','JalKendraLat','JalKendraLng','OtpFromEmail']:
+ t['Parameters'][name]={'Type':'String','Default':''}
+r['IntakeFunction']['Properties']['Environment']['Variables'].update({'JAL_KENDRA_NAME':R('JalKendraName'),'JAL_KENDRA_LAT':R('JalKendraLat'),'JAL_KENDRA_LNG':R('JalKendraLng'),'OTP_FROM_EMAIL':R('OtpFromEmail'),'ROUTE_CALCULATOR_NAME':R('Routes'),'PLACE_INDEX_NAME':R('Places')})
+r['IntakeFunction']['Properties']['Policies'] += [stmt(['geo:CalculateRoute'],A('Routes')),stmt(['geo:SearchPlaceIndexForText'],A('Places')),{'Statement':[{'Effect':'Allow','Action':['ses:SendEmail'],'Resource':S('arn:${AWS::Partition}:ses:${AWS::Region}:${AWS::AccountId}:identity/*'),'Condition':{'StringEquals':{'ses:FromAddress':R('OtpFromEmail')}}}]}]
+for name,path,method in [('PlanningConfig','config','GET'),('PlanningSearch','search','POST'),('PlanningContext','context','POST'),('PlanningRoute','route','POST'),('PlanningOtpSend','otp/send','POST'),('PlanningOtpVerify','otp/verify','POST')]:
+ r['IntakeFunction']['Properties']['Events'][name]={'Type':'HttpApi','Properties':{'ApiId':R('Api'),'Path':'/api/v1/planning/'+path,'Method':method}}
 for name,path,method in [('Needs','/needs','GET'),('NeedsReport','/needs/report','POST'),('SimulationStart','/simulation','POST'),('SimulationRead','/simulation','GET')]:
  r['IntakeFunction']['Properties']['Events'][name]={'Type':'HttpApi','Properties':{'ApiId':R('Api'),'Path':'/api/v1'+path,'Method':method}}
 r['IntakeFunction']['Properties']['Events']['Route3']['Properties']['Auth']={'Authorizer':'NONE'}
@@ -86,7 +93,7 @@ excerpts={
  'eventbridge':['OperationsBus','FraudRule','FraudPermission'],
  'step-functions':['DeliveryWorkflow'],
  'bedrock':['ClassifierFunction'],
- 'location-service':['Geofences','Tracker','Routes','Map'],
+ 'location-service':['Geofences','Tracker','Routes','Places','Map'],
  's3':['EvidenceBucket','EvidenceTlsPolicy'],
  'verified-permissions':[]
 }

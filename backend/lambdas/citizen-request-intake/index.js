@@ -10,6 +10,7 @@ const sqs = new SQSClient({ maxAttempts: 3 }),
 const handleHttp = c.http(async (event) => {
   const path = event.rawPath || "",
     method = event.requestContext?.http?.method;
+  if (path.startsWith("/api/v1/planning/")) return path.includes("/otp/") ? require("../../shared/delivery-otp").handle(event) : require("../../shared/planning").handle(event);
   if (path.includes("/needs") || path.endsWith("/simulation")) return require("../../shared/pilot").handle(event);
   if (path.endsWith("/public")) {
     const [wards, audits, anomalies] = await Promise.all(["WARD", "AUDIT", "ANOMALY"].map(c.query));
