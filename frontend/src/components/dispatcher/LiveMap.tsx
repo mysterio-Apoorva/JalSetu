@@ -171,7 +171,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         {onSwitchTo3D && (
           <button
             onClick={onSwitchTo3D}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-600/90 hover:bg-purple-600 text-white border border-purple-400 shadow-xl text-xs font-bold transition backdrop-blur-md"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white border border-emerald-400 shadow-xl text-xs font-bold transition backdrop-blur-md"
           >
             <Layers size={13} />
             <span>3D Radar</span>
@@ -241,10 +241,11 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         scrollWheelZoom={true}
         style={{ width: "100%", height: "100%" }}
       >
-        {/* Standard High-Performance OpenStreetMap Tiles (No API key required) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='Tiles &copy; Esri, HERE, Garmin, OpenStreetMap contributors'
+          url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+          maxZoom={16}
+          eventHandlers={{ tileerror: (e: any) => { const t = e.tile as HTMLImageElement; if (!t.dataset.fb) { t.dataset.fb = "1"; t.src = `https://tile.openstreetmap.org/${e.coords.z}/${e.coords.x}/${e.coords.y}.png`; } } }}
         />
 
         {/* Route Polylines */}

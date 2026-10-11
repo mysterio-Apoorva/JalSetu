@@ -104,64 +104,17 @@ export function AuthModal({
         ───────────────────────────────────────────────────────────── */}
         <section className="auth-bento-section" aria-label="JAL-SETU water network">
           <div className="auth-bento-grid">
-            {/* Card 1: Top-Left Monitoring Workstation Image */}
-            <div className="bento-card bento-image-card">
-              <img
-                src="https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&w=600&q=80"
-                alt="Water dispatch telemetry workstation"
-                className="bento-img"
-                loading="lazy"
-              />
-              <div className="bento-image-overlay" />
-            </div>
-
-            {/* Card 2: Top-Right Vivid Orange Stat Card */}
             <div className="bento-card bento-stat-card bento-orange">
-              <div className="stat-number">41%</div>
-              <p className="stat-caption">
-                of municipal wards face acute water pressure during summer heatwaves.
-              </p>
+              <div className="stat-number">1,111</div>
+              <p className="stat-caption">GPS tankers in Delhi. None prove water reached the door.</p>
             </div>
-
-            {/* Card 3: Mid-Left Technical Plant & Valve Sensor Image */}
-            <div className="bento-card bento-image-card">
-              <img
-                src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=600&q=80"
-                alt="Hydraulic flow sensor and pressure testing"
-                className="bento-img"
-                loading="lazy"
-              />
-              <div className="bento-image-overlay" />
-            </div>
-
-            {/* Card 4: Mid-Right Control Room Display Wall Image */}
-            <div className="bento-card bento-image-card">
-              <img
-                src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=600&q=80"
-                alt="Operations command wall tracking fleet dispatches"
-                className="bento-img"
-                loading="lazy"
-              />
-              <div className="bento-image-overlay" />
-            </div>
-
-            {/* Card 5: Bottom-Left Vivid Green Stat Card */}
+            <div className="bento-card role-card"><span className="role-kicker">Citizen</span><strong>Request in 3 taps</strong><p>Get an OTP and live status.</p></div>
+            <div className="bento-card role-card"><span className="role-kicker">Driver</span><strong>One-screen route</strong><p>Deliver, enter OTP, done.</p></div>
+            <div className="bento-card role-card"><span className="role-kicker">Dispatcher</span><strong>Optimised routes</strong><p>Baseline vs optimised, live.</p></div>
+            <div className="bento-card role-card"><span className="role-kicker">Auditor</span><strong>Ghost-trip flags</strong><p>Evidence stored in S3.</p></div>
             <div className="bento-card bento-stat-card bento-green">
-              <div className="stat-number">76%</div>
-              <p className="stat-caption">
-                reduction in ghost trips and water diversion via cryptographic 3-way OTP verification.
-              </p>
-            </div>
-
-            {/* Card 6: Bottom-Right Field Engineering Laptop Image */}
-            <div className="bento-card bento-image-card">
-              <img
-                src="https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=80"
-                alt="Field telemetry and GPS validation maps"
-                className="bento-img"
-                loading="lazy"
-              />
-              <div className="bento-image-overlay" />
+              <div className="stat-number">OTP</div>
+              <p className="stat-caption">Resident confirmation closes every delivery.</p>
             </div>
           </div>
         </section>

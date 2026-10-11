@@ -165,13 +165,13 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
       {/* Header */}
       <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
         <div className="flex items-center gap-2.5">
-          <div className="p-2 rounded-xl bg-purple-100 text-purple-700">
-            <Sparkles className="w-5 h-5 text-purple-600 animate-pulse" />
+          <div className="p-2 rounded-xl bg-emerald-100 text-emerald-700">
+            <Sparkles className="w-5 h-5 text-emerald-600 animate-pulse" />
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               Amazon Bedrock Copilot
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-800 font-mono font-bold">
+              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">
                 {LIVE_MODE ? "Bedrock" : "Demo responses"}
               </span>
             </h3>
@@ -198,7 +198,7 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
             className={`flex gap-3 text-xs ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
           >
             {msg.sender === "assistant" && (
-              <div className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center flex-shrink-0 mt-0.5 shadow-xs">
                 <Bot className="w-4 h-4" />
               </div>
             )}
@@ -217,7 +217,7 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
               {/* Tool Execution Box */}
               {msg.toolCall && (
                 <div className="mt-2 p-2 rounded-lg bg-slate-900 font-mono text-[10px] text-emerald-300">
-                  <div className="flex items-center gap-1.5 text-purple-300 font-bold mb-1">
+                  <div className="flex items-center gap-1.5 text-emerald-300 font-bold mb-1">
                     <Terminal className="w-3 h-3" />
                     <span>Tool Action: {msg.toolCall.name}</span>
                   </div>
@@ -243,8 +243,8 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
         ))}
 
         {isTyping && (
-          <div className="flex items-center gap-2 text-purple-700 text-xs font-mono bg-purple-50 p-2.5 rounded-xl border border-purple-200 w-fit">
-            <BrainCircuit className="w-4 h-4 animate-spin text-purple-600" />
+          <div className="flex items-center gap-2 text-emerald-700 text-xs font-mono bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 w-fit">
+            <BrainCircuit className="w-4 h-4 animate-spin text-emerald-600" />
             <span>Amazon Bedrock is analyzing the current snapshot...</span>
           </div>
         )}

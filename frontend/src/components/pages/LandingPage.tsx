@@ -33,6 +33,8 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
           tagline="Every drop. Every delivery. Accounted for."
           scrollHint="SCROLL TO ENTER THE WATER GRID"
           scrubDistance={2800}
+          ctaLabel="Create your account"
+          onCta={() => (onOpenAuth ? onOpenAuth("signup") : onNavigate("DISPATCHER"))}
         />
 
         {/* Action banner at bottom of hero */}

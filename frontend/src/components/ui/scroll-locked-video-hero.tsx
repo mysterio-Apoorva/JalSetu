@@ -22,6 +22,8 @@ export interface MetroHeroProps {
   signature?: { name: string; url: string } | false
   /** Total input distance (px) needed to scrub the full video. Tune to taste. */
   scrubDistance?: number
+  ctaLabel?: string
+  onCta?: () => void
   className?: string
   style?: React.CSSProperties
   onComplete?: () => void
@@ -45,6 +47,8 @@ export default function MetroHero({
   tagline = "Every door in the city is already open. Water moves. Trust follows.",
   signature = DEFAULT_SIGNATURE,
   scrubDistance = 3200,
+  ctaLabel,
+  onCta,
   className,
   style,
   onComplete,
@@ -55,6 +59,7 @@ export default function MetroHero({
   const hintRef = useRef<HTMLDivElement>(null)
   const taglineRef = useRef<HTMLDivElement>(null)
   const progressBarRef = useRef<HTMLDivElement>(null)
+  const ctaRef = useRef<HTMLDivElement>(null)
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -85,6 +90,8 @@ export default function MetroHero({
       }
     }
     video.addEventListener("loadeddata", onLoadedData)
+    const onError = () => { releaseLock(); setReady(true); targetProgress = 1; currentProgress = 1 }
+    video.addEventListener("error", onError)
 
     // iOS Safari often won't buffer any video data — even with
     // preload="auto" — until playback actually starts, to save mobile
@@ -238,6 +245,11 @@ export default function MetroHero({
         taglineRef.current.style.transform = `translateY(${(1 - t) * 20}px) scale(${0.97 + t * 0.03})`
         taglineRef.current.style.filter = `blur(${(1 - t) * 8}px)`
       }
+      if (ctaRef.current) {
+        const t = clamp((currentProgress - 0.9) / 0.1, 0, 1)
+        ctaRef.current.style.opacity = String(t)
+        ctaRef.current.style.pointerEvents = t > 0.6 ? "auto" : "none"
+      }
       if (progressBarRef.current) {
         progressBarRef.current.style.transform = `scaleX(${currentProgress})`
       }
@@ -251,6 +263,7 @@ export default function MetroHero({
 
     return () => {
       video.removeEventListener("loadeddata", onLoadedData)
+      video.removeEventListener("error", onError)
       video.removeEventListener("seeked", onSeeked)
       window.removeEventListener("wheel", onWheel)
       window.removeEventListener("touchstart", onTouchStart)
@@ -398,6 +411,21 @@ export default function MetroHero({
           <path d="M7 1 L7 17 M2 12 L7 17 L12 12" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </div>
+
+      {ctaLabel && (
+        <div
+          ref={ctaRef}
+          style={{ position: "absolute", left: "50%", bottom: "clamp(56px, 12vh, 110px)", transform: "translateX(-50%)", opacity: 0, zIndex: 3, display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}
+        >
+          <button
+            type="button"
+            onClick={onCta}
+            style={{ fontFamily: SANS, fontWeight: 700, fontSize: 15, padding: "14px 28px", borderRadius: 999, border: "1px solid rgba(255,255,255,0.35)", background: "#c4501a", color: "#fff", cursor: "pointer", boxShadow: "0 10px 40px rgba(196,80,26,0.45)" }}
+          >
+            {ctaLabel} →
+          </button>
+        </div>
+      )}
 
       {/* Thin progress line — fills as the video advances. */}
       <div

@@ -78,7 +78,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
           {/* Map Mode Sub-header Switcher */}
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-700">
-              <Radio className="w-4 h-4 text-purple-600 animate-pulse" />
+              <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
               <span>ACTIVE DISPATCH GRID</span>
             </div>
 
@@ -87,7 +87,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                 onClick={() => setMapMode("3D_RADAR")}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition ${
                   mapMode === "3D_RADAR"
-                    ? "bg-purple-600 text-white shadow-xs"
+                    ? "bg-emerald-600 text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -167,17 +167,17 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
         {/* Right 4 Cols: Fleet Inspector & Bedrock Copilot Drawer Launcher */}
         <div className="lg:col-span-4 space-y-4">
           {/* Bedrock AI Dispatcher Copilot Card */}
-          <div className="glossy-card p-4 rounded-2xl border-2 border-purple-200/80 bg-gradient-to-br from-purple-50/70 via-white to-sky-50/50 shadow-md">
+          <div className="glossy-card p-4 rounded-2xl border-2 border-emerald-200/80 bg-gradient-to-br from-emerald-50/70 via-white to-sky-50/50 shadow-md">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center text-white shadow-sm">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white shadow-sm">
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
                   <h4 className="font-extrabold text-slate-900 text-sm">
-                    Bedrock AI Copilot
+                     Bedrock AI Copilot
                   </h4>
-                  <p className="text-[10px] text-purple-700 font-mono font-medium">
+                  <p className="text-[10px] text-emerald-700 font-mono font-medium">
                     {LIVE_MODE
                       ? "Snapshot-grounded responses"
                       : "Example responses"}
@@ -196,7 +196,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
 
             <button
               onClick={() => setIsCopilotOpen(true)}
-              className="w-full py-2 px-3 rounded-xl bg-purple-700 hover:bg-purple-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition"
+              className="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Open Natural Language Copilot</span>
