@@ -247,6 +247,10 @@ function setup(t, overrides = {}) {
       calls.push({ name: command.constructor.name, input: command.input });
       const override = overrides[command.constructor.name];
       if (override) return override(command.input);
+      if (command.constructor.name === "CalculateRouteCommand") {
+        const points = [command.input.DeparturePosition, ...(command.input.WaypointPositions || []), command.input.DestinationPosition];
+        return { Legs: points.slice(1).map((point, i) => ({ Geometry: { LineString: [points[i], point] } })) };
+      }
       if (command.constructor.name === "IsAuthorizedCommand")
         return { decision: "ALLOW" };
       if (command.constructor.name === "GetCommand")
@@ -694,6 +698,19 @@ test("optimizer builds multiple stops when capacity allows", async (t) => {
   assert.equal(result.assignments.length, 2);
   assert.equal(result.plans[0].scheduledLiters, 8000);
   assert.equal(result.plans[0].stops.length, 2);
+  assert.ok(result.plans[0].stops.every(stop => stop.roadGeometry.length >= 2));
+});
+
+test("optimizer refuses dispatch when road geometry is missing", async (t) => {
+  const calls = setup(t, {
+    QueryCommand: i => ({ Items: i.ExpressionAttributeValues[":pk"] === "REQUEST"
+      ? [{ ...request, status: "SCHEDULED", urgencyScore: 90, createdAt: "2026" }]
+      : [{ id: "t1", status: "IDLE", driverId: "driver-1", currentWaterLevelLiters: 5000, currentCoordinates: request.coordinates }] }),
+    CalculateRouteMatrixCommand: () => ({ RouteMatrix: [[{ Distance: 3.2, DurationSeconds: 420 }]] }),
+    CalculateRouteCommand: () => ({ Legs: [{ Geometry: { LineString: [] } }] }),
+  });
+  await assert.rejects(optimizer.handler({}), /invalid road geometry/);
+  assert.equal(calls.filter(call => call.name === "TransactWriteCommand").length, 0);
 });
 test("request intake persists private OTP hash and returns code only to creator", async (t) => {
   const calls = setup(t, {

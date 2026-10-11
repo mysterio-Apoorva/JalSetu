@@ -52,6 +52,7 @@ export interface Depot {
 }
 
 export interface Waypoint {
+  roadGeometry?: [number, number][]; // Amazon Location [longitude, latitude].
   stopIndex: number;
   requestId: string;
   wardName: string;

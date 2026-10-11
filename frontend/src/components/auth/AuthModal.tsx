@@ -105,8 +105,8 @@ export function AuthModal({
         <section className="auth-bento-section" aria-label="JAL-SETU water network">
           <div className="auth-bento-grid">
             <div className="bento-card bento-stat-card bento-orange">
-              <div className="stat-number">1,111</div>
-              <p className="stat-caption">GPS tankers in Delhi. None prove water reached the door.</p>
+              <div className="stat-number">GPS</div>
+              <p className="stat-caption">Location, resident confirmation, and photographic delivery evidence.</p>
             </div>
             <div className="bento-card role-card"><span className="role-kicker">Citizen</span><strong>Request in 3 taps</strong><p>Get an OTP and live status.</p></div>
             <div className="bento-card role-card"><span className="role-kicker">Driver</span><strong>One-screen route</strong><p>Deliver, enter OTP, done.</p></div>
@@ -146,6 +146,7 @@ export function AuthModal({
                 className="secondary-action"
                 onClick={() => {
                   setRegister(false);
+                  window.location.hash = "#signin";
                   setError("");
                 }}
               >
@@ -160,6 +161,7 @@ export function AuthModal({
                   disabled={!!loading}
                   onClick={() => {
                     setRegister(true);
+                    window.location.hash = "#signup";
                     setError("");
                   }}
                 >

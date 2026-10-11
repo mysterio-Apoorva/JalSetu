@@ -2,26 +2,16 @@ import React, { useState, useEffect } from "react";
 import { TelemetryStatus } from "./TelemetryStatus";
 import {
   MapContainer,
-  TileLayer,
   Marker,
   Popup,
   Polyline,
   CircleMarker,
   useMap,
+  Circle,
 } from "react-leaflet";
 import L from "leaflet";
 
-function MapResizer() {
-  const map = useMap();
-  useEffect(() => {
-    map.invalidateSize();
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 250);
-    return () => clearTimeout(timer);
-  }, [map]);
-  return null;
-}
+import { MapResizer, MapTiles } from "../maps/MapSupport";
 import { Ward, Depot, Tanker, WaterRequest } from "../../types";
 import {
   Layers,
@@ -94,15 +84,14 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   const [showGeofences, setShowGeofences] = useState(true);
 
   // Calculate route lines with high-visibility styling
-  const routesToRender = fleet.map((tanker) => {
+  const routesToRender = fleet.flatMap((tanker) => {
     const isAnomaly = tanker.status === "ANOMALY_FLAGGED";
     const isSelected = selectedTanker?.id === tanker.id;
-    const points: [number, number][] = [
-      [tanker.currentCoordinates.lat, tanker.currentCoordinates.lng],
-      ...tanker.assignedRoute.map(
-        (w) => [w.coordinates.lat, w.coordinates.lng] as [number, number],
-      ),
-    ];
+    const points: [number, number][][] = tanker.assignedRoute
+      .filter(stop => !stop.isCompleted && stop.roadGeometry?.length)
+      .map(stop => stop.roadGeometry!.map(([lng, lat]) => [lat, lng] as [number, number]))
+      .filter(segment => segment.length >= 2);
+    if (!points.length) return [];
 
     return {
       tankerId: tanker.id,
@@ -119,28 +108,28 @@ export const LiveMap: React.FC<LiveMapProps> = ({
     };
   });
 
-  const totalTransitLiters = fleet.reduce(
+  const totalTransitLiters = fleet.filter(t => ["EN_ROUTE", "DISPENSING"].includes(t.status)).reduce(
     (acc, t) => acc + (t.currentWaterLevelLiters || 0),
     0
   );
 
   return (
-    <div className="relative w-full h-[580px] rounded-3xl overflow-hidden border border-slate-300/80 shadow-2xl bg-slate-900 font-sans">
+    <div className="relative isolate w-full h-[580px] rounded-3xl overflow-hidden border border-slate-300/80 shadow-2xl bg-slate-900 font-sans">
       {/* Top Left: Glassmorphism Tactical HUD */}
-      <div className="absolute top-4 left-4 z-[1000] flex flex-wrap items-center gap-2.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl text-xs">
+      <div className="absolute top-3 left-3 right-3 sm:right-auto z-[1000] pointer-events-none flex flex-wrap items-center gap-2.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl text-xs">
         <div className="flex items-center gap-2">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
           </span>
           <span className="font-black text-white tracking-tight uppercase">
-            Delhi Tactical Grid
+            Delhi Fleet Map
           </span>
         </div>
         <span className="text-slate-600">|</span>
         <div className="flex items-center gap-1.5 font-mono text-slate-300">
           <Truck size={13} className="text-emerald-400" />
-          <span>{fleet.length} Tankers Active</span>
+          <span>{fleet.length} Recorded Tankers</span>
         </div>
         <span className="text-slate-600">|</span>
         <div className="flex items-center gap-1.5 font-mono text-cyan-300">
@@ -160,7 +149,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       </div>
 
       {/* Top Right: Layer & 3D Controls */}
-      <div className="absolute top-4 right-4 z-[1000] flex items-center gap-2">
+      <div className="absolute top-28 sm:top-20 right-3 z-[1000] flex-wrap max-w-[90%] flex items-center gap-2">
         <button
           onClick={() => setMapStyle(mapStyle === "voyager" ? "standard" : "voyager")}
           className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 shadow-xl text-xs font-bold transition backdrop-blur-md"
@@ -196,7 +185,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       <div className="absolute bottom-4 right-4 z-[1000] hidden md:flex items-center gap-3.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl text-[11px] font-medium">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-          <span>DJB Booster Depot</span>
+          <span>Registered Depot</span>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span>
@@ -247,6 +236,8 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         </div>
       )}
 
+      {fleet.some(t => t.assignedRoute.some(stop => !stop.isCompleted && !stop.roadGeometry?.length)) &&
+        <p className="absolute bottom-20 left-3 right-3 z-[1000] rounded bg-white/95 p-2 text-xs text-slate-800">Road geometry is unavailable for some assigned stops. Their routes are not drawn.</p>}
       {/* Map Container */}
       <MapContainer
         center={delhiCenter}
@@ -255,17 +246,10 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         style={{ width: "100%", height: "100%" }}
       >
         {/* Standard High-Performance OpenStreetMap Tiles (No API key required) */}
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url={
-            mapStyle === "voyager"
-              ? "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-              : "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          }
-        />
-        <MapResizer />
+        <MapTiles key={mapStyle} style={mapStyle} />
+        <MapResizer /><SelectedTankerView tanker={selectedTanker} />
 
-        {/* Route Polylines */}
+        {/* Only provider road geometry is rendered; missing data is never a straight-line route. */}
         {routesToRender.map((route, idx) => (
           <Polyline
             key={`route-${route.tankerId}-${idx}`}
@@ -316,9 +300,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
             <React.Fragment key={ward.id}>
               {/* Outer Geofence Ring if toggled */}
               {showGeofences && (
-                <CircleMarker
+                <Circle
                   center={[ward.coordinates.lat, ward.coordinates.lng]}
-                  radius={isCritical ? 34 : 26}
+                  radius={200}
                   pathOptions={{
                     color: color,
                     fillColor: color,
@@ -458,3 +442,12 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   );
 };
 export default LiveMap;
+
+function SelectedTankerView({ tanker }: { tanker: Tanker | null }) {
+  const map = useMap();
+  const lat = tanker?.currentCoordinates.lat, lng = tanker?.currentCoordinates.lng;
+  useEffect(() => {
+    if (lat != null && lng != null && Number.isFinite(lat) && Number.isFinite(lng)) map.panTo([lat, lng]);
+  }, [map, lat, lng]);
+  return null;
+}

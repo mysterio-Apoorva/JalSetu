@@ -1,0 +1,63 @@
+Project repair verification - 11 October 2026
+
+Implemented changes
+- Landing video autoplays muted; pause, native scrolling, blocked-media fallback,
+  visibility handling, and reduced-motion preferences work independently.
+- Gates open on entry. The architecture walkthrough starts automatically, pauses
+  offscreen, supports manual inspection, and scales to narrow screens.
+- Signup, sign-in, public navigation, and mobile workspace navigation are repaired.
+- AWS failures no longer manufacture requests, dispatches, GPS samples, delivery
+  confirmations, OTPs, audit hashes, or successful ratings in the browser.
+- Production demo injection and fabricated delivery/equity statistics are removed.
+  The skyline aggregates dated, verified records from the public audit endpoint.
+- Fleet routing persists Amazon Location truck-road geometry before assignment.
+  Missing geometry fails before dispatch. The map does not join stops with invented
+  straight-line road routes. Recorded segments are drawn separately.
+- Leaflet responds to container resizing and reports tile failures with retry.
+  Ward geofence circles use metres. Map attribution includes the active provider.
+- Hosting CSP permits CARTO tiles and the existing video host. Local development
+  proxies to the configured API URL rather than a hard-coded deployment.
+- Invalid route responses produce a visible error. A render error offers recovery.
+- The production bundle check rejects the newly discovered demonstration fixtures.
+
+Validation
+- 68 Node backend regression tests passed, including geometry failure before dispatch.
+- 8 Python registration/import regression tests passed.
+- 15 production browser tests, 15 authentication/API browser tests, and 3 development
+  demo browser tests passed. The four canvas/map checks were rerun after sizing fixes.
+- TypeScript/Vite build, frontend lint, infrastructure parity, production bundle
+  validation, and git diff whitespace checks passed.
+- A separate headless-browser check used the actual video URL: autoplay advanced,
+  pause worked, no page errors occurred, and the mobile page fit the viewport.
+- Browser API regression tests use controlled responses; they do not establish
+  successful real-user authentication, email inbox receipt, or physical delivery.
+
+Live AWS observations (read-only checks, plus one small Bedrock inference)
+- CloudFormation UPDATE_COMPLETE; six application Lambdas Active.
+- DynamoDB indexes ACTIVE; intake stream and queue mappings Enabled.
+- S3 versioning and public-access blocking enabled; surge queue and its DLQ empty.
+- Amazon Location returned a 17.559 km route with 407 road-geometry points.
+- Bedrock inference returned a response; Step Functions ACTIVE; event bus configured.
+- Public API available; unauthenticated snapshot request rejected with HTTP 401.
+- SES sender verified and sending enabled, but production access is false (sandbox).
+- No confirmed alarm notification subscriptions.
+- Public operational data currently has zero verified wards and zero deliveries.
+- Image generation remains disabled by its configured daily limit of zero.
+
+Release and remaining external inputs
+At pre-release verification, these changes had not been pushed or published and no
+deployed AWS configuration had been changed. A coordinated release must
+include the optimizer code and its geo:CalculateRoute IAM permission, plus the frontend
+and updated Amplify custom headers. Existing assignments without stored road geometry
+remain explicitly undrawn; newly optimized assignments include provider geometry.
+
+General recipient email requires SES production access or sandbox-eligible recipients.
+An operator must supply verified service areas, facility pins, fleet/driver assignments,
+and a confirmed alarm recipient. No data was invented and no emails were sent.
+Image generation needs an explicit operator budget before it can be enabled.
+
+AWS route API reference used for waypoint and geometry integration:
+https://docs.aws.amazon.com/location/previous/APIReference/API_CalculateRoute.html
+
+Local diagnostic artifacts: .runtime/service-health.json, .runtime/playback-check.json,
+.runtime/landing-desktop-fixed.png, .runtime/architecture-fit-mobile.png.

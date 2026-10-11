@@ -1,4 +1,6 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import { usePublicDeliveries, type PublicDelivery } from "../../hooks/usePublicDeliveries";
+import { useElementWidth } from "../../hooks/useElementWidth";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { Grid3X3, Box, RotateCcw } from "lucide-react";
 
 interface DayDelivery {
@@ -14,11 +16,16 @@ interface DayDelivery {
 
 interface ContributionSkylineProps {
   className?: string;
+  deliveries?: PublicDelivery[];
   onSelectDay?: (day: DayDelivery) => void;
 }
 
-export function ContributionSkyline3D({ className, onSelectDay }: ContributionSkylineProps) {
+export function ContributionSkyline3D({ className, onSelectDay, deliveries: supplied }: ContributionSkylineProps) {
+  const { deliveries, error, loading } = usePublicDeliveries(supplied);
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 60000); return () => clearInterval(timer); }, []);
   const [viewMode, setViewMode] = useState<"3d" | "grid">("3d");
+  const { ref: stageRef, width: stageWidth } = useElementWidth();
   const [hoveredDay, setHoveredDay] = useState<DayDelivery | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -26,100 +33,50 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
   const [rotation, setRotation] = useState<{ x: number; z: number }>({ x: 56, z: -40 });
   const lastMousePos = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
-  // Generate 52 weeks of verified deliveries (364 days) matching the user reference
+  // Aggregate only persisted public audit records, using the Delhi calendar day.
   const { weeks, stats } = useMemo(() => {
-    const wards = [
-      "Sangam Vihar",
-      "Seelampur",
-      "Mehrauli",
-      "Dwarka JJ",
-      "Rohini Sec-16",
-      "Narela",
-      "Mustafabad",
-      "Okhla",
-    ];
-
-    const weeksData: DayDelivery[][] = [];
-    const baseDate = new Date(2025, 10, 6); // Nov 6, 2025
-
-    for (let w = 0; w < 52; w++) {
-      const week: DayDelivery[] = [];
-      for (let d = 0; d < 7; d++) {
-        const currentDate = new Date(baseDate);
-        currentDate.setDate(baseDate.getDate() + w * 7 + d);
-
-        const monthNum = currentDate.getMonth(); // 0-11
-        const monthName = currentDate.toLocaleDateString("en-US", { month: "short" });
-        const dateStr = currentDate.toLocaleDateString("en-US", {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        });
-
-        // Deterministic pseudo-random generation for stable rendering
-        const seed = w * 7 + d;
-        const p1 = ((seed * 9301 + 49297) % 233280) / 233280;
-        const p2 = ((seed * 1337 + 5123) % 1000) / 1000;
-
-        // Peak summer simulation (May - July)
-        const isSummer = monthNum >= 4 && monthNum <= 6;
-        const isPeakDay = w === 37 && d === 4; // Mid-July peak
-
-        let count = 0;
-        if (isPeakDay) {
-          count = 54;
-        } else if (isSummer) {
-          count = Math.floor(p1 * 14) + 6; // 6 - 19
-        } else if (p1 > 0.3) {
-          count = Math.floor(p1 * 8) + 1;  // 1 - 8
-        }
-
-        let intensity = 0;
-        if (count > 0) intensity = 1;
-        if (count >= 5) intensity = 2;
-        if (count >= 10) intensity = 3;
-        if (count >= 16) intensity = 4;
-
-        // 3D extrusion height: 0px to 54px
-        const height = count === 0 ? 0 : Math.min(56, Math.max(4, Math.round(count * 2.8)));
-        const liters = count * (Math.floor(p2 * 2500) + 4500);
-        const ward = wards[(w + d) % wards.length];
-
-        week.push({
-          date: dateStr,
-          count,
-          liters,
-          ward,
-          intensity,
-          height,
-          month: monthName,
-          dayOfWeek: d,
-        });
-      }
-      weeksData.push(week);
+    const dateKey = (date: Date) => date.toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const today = new Date(dateKey(new Date(now)) + "T00:00:00Z");
+    const start = new Date(today); start.setUTCDate(start.getUTCDate() - 363);
+    const byDate = new Map<string, PublicDelivery[]>();
+    const seen = new Set<string>();
+    for (const delivery of deliveries) {
+      if (seen.has(delivery.id) || delivery.status !== "DELIVERED_VERIFIED" || !delivery.deliveredAt || !Number.isFinite(delivery.litersDelivered) || delivery.litersDelivered! <= 0) continue;
+      const at = new Date(delivery.deliveredAt);
+      if (!Number.isFinite(at.getTime()) || dateKey(at) > dateKey(new Date(now))) continue;
+      seen.add(delivery.id);
+      const key = dateKey(at);
+      byDate.set(key, [...(byDate.get(key) || []), delivery]);
     }
-
-    return {
-      weeks: weeksData,
-      stats: {
-        total: 1720, // matching exact user screenshot
-        busiestCount: 54,
-        busiestDate: "Jul 25",
-        longestStreak: 27,
-        currentStreak: 2,
-        dateRange: "Nov 6, 2025 — Nov 8, 2026",
-      },
-    };
-  }, []);
+    const days: DayDelivery[] = Array.from({ length: 364 }, (_, index) => {
+      const date = new Date(start); date.setUTCDate(start.getUTCDate() + index);
+      const rows = byDate.get(dateKey(date)) || [];
+      const count = rows.length;
+      return { date: date.toLocaleDateString("en-US", { timeZone: "UTC", month: "short", day: "numeric", year: "numeric" }),
+        count, liters: rows.reduce((sum, row) => sum + row.litersDelivered!, 0),
+        ward: [...new Set(rows.map(row => row.wardId).filter(Boolean))].join(", ") || "No recorded deliveries",
+        intensity: count >= 16 ? 4 : count >= 10 ? 3 : count >= 5 ? 2 : count > 0 ? 1 : 0,
+        height: count ? Math.min(56, Math.max(4, Math.round(count * 2.8))) : 0,
+        month: date.toLocaleDateString("en-US", { month: "short", timeZone: "UTC" }), dayOfWeek: date.getUTCDay() };
+    });
+    let longestStreak = 0, currentStreak = 0;
+    for (const day of days) { currentStreak = day.count ? currentStreak + 1 : 0; longestStreak = Math.max(longestStreak, currentStreak); }
+    const busiest = days.reduce((a, b) => b.count > a.count ? b : a);
+    return { weeks: Array.from({ length: 52 }, (_, i) => days.slice(i * 7, i * 7 + 7)), stats: {
+      total: days.reduce((sum, day) => sum + day.count, 0), busiestCount: busiest.count,
+      busiestDate: busiest.count ? busiest.date : "No deliveries", longestStreak, currentStreak,
+      dateRange: `${days[0].date} — ${days.at(-1)!.date}`,
+    } };
+  }, [deliveries, now]);
 
   // Mouse Orbit Drag Handlers
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.PointerEvent) => {
     if (viewMode !== "3d") return;
     setIsDragging(true);
     lastMousePos.current = { x: e.clientX, y: e.clientY };
   }, [viewMode]);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.PointerEvent) => {
     if (!isDragging || viewMode !== "3d") return;
     const deltaX = e.clientX - lastMousePos.current.x;
     const deltaY = e.clientY - lastMousePos.current.y;
@@ -181,15 +138,15 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
     }
   };
 
-  const monthLabels = ["Nov", "Dec", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"];
+  const monthLabels = weeks.filter((week, i) => i === 0 || week[0].month !== weeks[i - 1][0].month).map(week => week[0].month);
 
   return (
     <div
       className={`w-full rounded-3xl bg-[#090d16] border border-slate-800 text-slate-100 p-6 md:p-8 shadow-2xl relative overflow-hidden font-sans select-none ${
         className || ""
       }`}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseUp}
+      onPointerUp={handleMouseUp} onPointerCancel={handleMouseUp}
+      onPointerLeave={handleMouseUp}
     >
       {/* Background cyber radial glow */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -208,10 +165,10 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
             </span>
           </div>
           <h2 className="text-2xl font-black text-white tracking-tight mt-1">
-            {stats.total.toLocaleString()} Verified Deliveries in the Last Year
+            {stats.total.toLocaleString()} Recorded Deliveries · Last 52 Weeks
           </h2>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            Real-time volumetric 3D representation of audited municipal tanker dispatches across all 250 wards.
+            Delivery activity from the public audit ledger. Empty days indicate no records in the returned history.
           </p>
         </div>
 
@@ -253,16 +210,19 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
         </div>
       </div>
 
+      {loading && <p role="status" className="mt-4">Loading delivery history…</p>}
+      {error && <p role="alert" className="mt-4 text-amber-300">{error} Showing the last available records.</p>}
+      {!loading && !error && stats.total === 0 && <p className="mt-4 text-slate-300">No verified deliveries are recorded in this period.</p>}
       {/* Main Stats Header Cards matching user screenshot */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 my-6 relative z-10">
         {/* 1 Year Total */}
         <div className="bg-[#0d1117]/90 border border-slate-800/80 rounded-2xl p-4">
-          <span className="text-xs text-slate-400 block">1 year total</span>
+          <span className="text-xs text-slate-400 block">52 week total</span>
           <div className="text-3xl font-black font-mono text-emerald-400 mt-0.5 tracking-tight">
             {stats.total.toLocaleString()}
           </div>
           <span className="text-[11px] text-slate-400 block mt-1">
-            contributions · {stats.dateRange}
+            deliveries · {stats.dateRange}
           </span>
         </div>
 
@@ -273,7 +233,7 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
             {stats.busiestCount}
           </div>
           <span className="text-[11px] text-slate-400 block mt-1">
-            dispatches · {stats.busiestDate}
+            deliveries · {stats.busiestDate}
           </span>
         </div>
 
@@ -284,7 +244,7 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
             {stats.longestStreak}
           </div>
           <span className="text-[11px] text-slate-400 block mt-1">
-            days · Apr 17 — May 13
+            consecutive days with recorded deliveries
           </span>
         </div>
 
@@ -295,18 +255,19 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
             {stats.currentStreak}
           </div>
           <span className="text-[11px] text-slate-400 block mt-1">
-            days · Active uninterrupted supply
+            consecutive days through today
           </span>
         </div>
       </div>
 
       {/* Interactive 3D Orbit / Grid Canvas Stage */}
       <div
+        ref={stageRef}
         className={`relative w-full overflow-hidden rounded-2xl border border-slate-800/80 bg-[#060910] p-6 flex flex-col items-center justify-center transition-all ${
           viewMode === "3d" ? "cursor-grab active:cursor-grabbing min-h-[380px]" : "min-h-[260px]"
         }`}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
+        onPointerDown={handleMouseDown}
+        onPointerMove={handleMouseMove}
         onDoubleClick={handleResetOrbit}
       >
         {/* Month labels for 2D Grid */}
@@ -331,7 +292,7 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
             <div
               style={{
                 transformStyle: "preserve-3d",
-                transform: `rotateX(${rotation.x}deg) rotateZ(${rotation.z}deg)`,
+                transform: `scale(${Math.min(1, stageWidth / 780)}) rotateX(${rotation.x}deg) rotateZ(${rotation.z}deg)`,
                 transition: isDragging ? "none" : "transform 0.2s ease-out",
                 display: "grid",
                 gridTemplateColumns: "repeat(52, 10px)",
@@ -363,8 +324,10 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
                           height: "10px",
                           transformStyle: "preserve-3d",
                         }}
+                        role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
+                        onFocus={() => setHoveredDay(day)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setHoveredDay(day); onSelectDay?.(day); } }}
                         onMouseEnter={() => setHoveredDay(day)}
-                        onClick={() => onSelectDay?.(day)}
+                        onClick={() => { setHoveredDay(day); onSelectDay?.(day); }}
                       >
                         {/* Base grid plate */}
                         <div
@@ -456,8 +419,10 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
                         className={`w-3 h-3 rounded-xs cursor-pointer transition-transform ${
                           colors.flat
                         } ${isHovered ? "ring-2 ring-emerald-300 scale-125 z-10" : "hover:scale-115"}`}
+                        role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
+                        onFocus={() => setHoveredDay(day)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setHoveredDay(day); onSelectDay?.(day); } }}
                         onMouseEnter={() => setHoveredDay(day)}
-                        onClick={() => onSelectDay?.(day)}
+                        onClick={() => { setHoveredDay(day); onSelectDay?.(day); }}
                       />
                     );
                   })}
@@ -475,11 +440,11 @@ export function ContributionSkyline3D({ className, onSelectDay }: ContributionSk
               <strong className="text-white font-mono">{hoveredDay.date}</strong>
             </div>
             <div className="text-slate-300 mt-1 font-mono">
-              <span className="text-emerald-400 font-bold">{hoveredDay.count} dispatches</span> ·{" "}
+              <span className="text-emerald-400 font-bold">{hoveredDay.count} deliveries</span> ·{" "}
               {hoveredDay.liters.toLocaleString()} Liters
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">
-              Ward: <span className="text-slate-200">{hoveredDay.ward}</span> · SHA-256 Verified
+              Ward: <span className="text-slate-200">{hoveredDay.ward}</span> · Public ledger
             </div>
           </div>
         )}

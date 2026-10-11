@@ -39,7 +39,7 @@ test("self-registration verifies email, limits resends, and signs in", async ({
     return route.fulfill({ json: {} });
   });
   await page.setViewportSize({ width: 360, height: 800 });
-  await page.goto("/");
+  await page.goto("/#signin");
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
@@ -99,7 +99,7 @@ test("returning unconfirmed account can resend and correct a verification code",
       });
     return route.fulfill({ json: {} });
   });
-  await page.goto("/");
+  await page.goto("/#signin");
   await page
     .getByRole("button", { name: "Create account", exact: true })
     .click();
@@ -149,7 +149,7 @@ test("password recovery calls Cognito and returns to sign in", async ({
     );
     return route.fulfill({ json: {} });
   });
-  await page.goto("/");
+  await page.goto("/#signin");
   await page.getByLabel("Email address").fill("resident@example.org");
   await page.getByRole("button", { name: "Forgot password?" }).click();
   await page.getByLabel("Email recovery code").fill("123456");
@@ -183,7 +183,10 @@ test("four personas stay isolated across tabs, restore, and sign out independent
       await expect(page.locator(".auth-profile-email")).toHaveText(
         `${role.toLowerCase()}@jalsetu.local`,
       );
-      await expect(page.locator(".role-tab")).toHaveCount(2);
+      await expect(page.locator(".role-tab")).toHaveCount(role === "Auditor" ? 4 : 5);
+      for (const other of roles.filter(value => value !== role && value !== "Auditor")) {
+        await expect(page.locator(`#nav-tab-${other === "Citizen" ? "citizen" : other === "Driver" ? "driver" : "dispatcher"}`)).toHaveCount(0);
+      }
       await expect(page.locator(".role-tab.selected")).toHaveCount(1);
       await page.reload();
       await expect(page.locator(".auth-profile-email")).toHaveText(
@@ -253,7 +256,7 @@ test("mobile login has touch targets, password toggle, errors and no overflow", 
   await page.route("https://cognito-idp.us-east-1.amazonaws.com/", (route) =>
     route.fulfill({ status: 400, json: { __type: "NotAuthorizedException" } }),
   );
-  await page.goto("/");
+  await page.goto("/#signin");
   await page.getByLabel("Password", { exact: true }).fill("incorrect");
   await page.getByRole("button", { name: "Show password" }).click();
   await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(

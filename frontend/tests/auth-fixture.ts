@@ -33,6 +33,6 @@ export async function mockAuth(page: Page, role = "Citizen") {
   return result;
 }
 export async function login(page: Page, role = "Citizen") {
-  await page.goto("/", {waitUntil:"domcontentloaded"});
+  await page.goto("/#signin", {waitUntil:"domcontentloaded"});
   await page.getByRole("button", { name: `${role} Demo` }).click();
 }

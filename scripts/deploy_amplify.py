@@ -33,7 +33,7 @@ def main():
         assert len(apps) <= 1, 'Ambiguous Amplify app name'
         api = config['VITE_API_BASE_URL'].rstrip('/')
         cognito = 'https://' + urlparse(config['JWT_ISSUER']).netloc
-        csp = f"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org; connect-src 'self' {api} {cognito}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
+        csp = f"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com; media-src 'self' https://cdn.21st.dev; connect-src 'self' {api} {cognito}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'; upgrade-insecure-requests"
         headers = {'customHeaders':[{'pattern':'**/*','headers':[{'key':k,'value':v} for k,v in {
             'Content-Security-Policy':csp, 'X-Content-Type-Options':'nosniff', 'Referrer-Policy':'strict-origin-when-cross-origin',
             'Strict-Transport-Security':'max-age=31536000; includeSubDomains', 'Permissions-Policy':'geolocation=(self), camera=(self), microphone=()',

@@ -1,5 +1,6 @@
+import { MapResizer, MapTiles } from "./maps/MapSupport";
 import {useEffect,useRef,useState} from "react";
-import {CircleMarker,MapContainer,Polygon,Polyline,Popup,TileLayer,useMap,useMapEvents} from "react-leaflet";
+import {CircleMarker,MapContainer,Polygon,Polyline,Popup,useMap,useMapEvents} from "react-leaflet";
 import {api} from "../services/api";
 type Point={lat:number;lng:number};
 type Place={label:string;coordinates:Point};
@@ -19,13 +20,21 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
   const [lat,setLat]=useState(""),[lng,setLng]=useState(""),[route,setRoute]=useState<Route|null>(null),[context,setContext]=useState<Context|null>(null);
   const [error,setError]=useState(""),[busy,setBusy]=useState(false),[message,setMessage]=useState(""),[code,setCode]=useState(""),[sent,setSent]=useState(false),[confirmed,setConfirmed]=useState(false);
   const [refresh,setRefresh]=useState(0);
+  const [contextFailed,setContextFailed]=useState(false);
   const [centreId,setCentreId]=useState("");
   const selection=point?`${point.lat},${point.lng}`:"";
+  const [previousSelection,setPreviousSelection]=useState(selection);
+  if(previousSelection!==selection){
+    setPreviousSelection(selection);setContextFailed(false);setContext(null);setRoute(null);setSent(false);setConfirmed(false);setCode("");setMessage("");
+    setLat(point?String(point.lat):"");setLng(point?String(point.lng):"");
+  }
   const latest=useRef(selection);
   useEffect(()=>{latest.current=selection;},[selection]);
   useEffect(()=>{let active=true;api<Config>("/planning/config").then(data=>{if(active)setConfig(data);}).catch(e=>{if(active)setError(e.message);});return()=>{active=false;};},[]);
   function choose(next:Point,label?:string) {
     if(busy)return;
+    if (!Number.isFinite(next.lat) || !Number.isFinite(next.lng) || Math.abs(next.lat) > 84.99 || Math.abs(next.lng) > 179.97) { setError("Choose valid latitude and longitude within the supported map area."); return; }
+    setError("");
     latest.current=`${next.lat},${next.lng}`;
     setRoute(null);setSent(false);setConfirmed(false);setCode("");setMessage("");
     setContext(null);setLat(String(next.lat));setLng(String(next.lng));onPick(next,label);
@@ -35,9 +44,9 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     let active=true,timer:ReturnType<typeof setTimeout>|undefined;const start=Date.now();
     const load=async()=>{try{
       const result=await api<Context>("/planning/context",{coordinates:{lat:+point.lat.toFixed(3),lng:+point.lng.toFixed(3)}});
-      if(!active)return;setContext(result);
+      if(!active)return;if(!result || !Array.isArray(result.errors))throw new Error("Location service returned an invalid response. Please retry.");setContext(result);
       if(result.population?.status==="PENDING"&&Date.now()-start<120000)timer=setTimeout(load,6000);
-    }catch(e){if(active)setError((e as Error).message);}};
+    }catch(e){if(active){setContextFailed(true);setError((e as Error).message);}}};
     // Avoid sending a lookup for each click while the user is still choosing.
     timer=setTimeout(load,500);
     return()=>{active=false;clearTimeout(timer);};
@@ -48,7 +57,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     {config?.centres&&<label className="block text-sm">Starting Jal Kendra<select className="block w-full border rounded p-2" disabled={busy} value={centreId||config.centres.find(c=>c.status==="READY")?.id||""} onChange={e=>{setCentreId(e.target.value);setRoute(null);setSent(false);setConfirmed(false);setCode("");setMessage("");}}>{config.centres.map(c=><option key={c.id} value={c.id} disabled={c.status!=="READY"}>{c.name}{c.status!=="READY"?" — exact map pin needed":""}</option>)}</select><span className="text-xs">Routes use the selected centre as the fixed starting point. Pending centres need an exact pin before routing is enabled.</span></label>}
     <p className="text-sm">Delivery is simulated. Roads, route distance, weather and sourced population estimates are real service results. {config?.origin?`Every route starts at ${config.origin.name}.`:"The operator must configure the fixed Jal Kendra starting point before routes can be calculated."}</p>
     <form className="flex gap-2" onSubmit={e=>{e.preventDefault();void task(async()=>{const result=await api<{places:Place[]}>("/planning/search",{query});setPlaces(result.places);if(!result.places.length)setMessage("No matching places. Select the map or enter coordinates.");});}}>
-      <label className="flex-1">Destination address or locality<input required value={query} onChange={e=>setQuery(e.target.value)} maxLength={200} className="block w-full border rounded p-2" /></label>
+      <label className="flex-1 min-w-0">Destination address or locality<input required value={query} onChange={e=>setQuery(e.target.value)} maxLength={200} className="block w-full border rounded p-2" /></label>
       <button className="secondary-action self-end" disabled={busy}>Find place</button>
     </form>
     {places.length>0&&<ul className="space-y-2">{places.map((p,i)=><li key={i}><button className="secondary-action text-left" disabled={busy} onClick={()=>{choose(p.coordinates,p.label);setPlaces([]);}}>{p.label}</button></li>)}</ul>}
@@ -59,10 +68,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     </form>
     <div className="relative overflow-hidden rounded-2xl border border-slate-700/60 shadow-xl bg-slate-950">
       <MapContainer center={[28.63,77.18]} zoom={11} style={{height:400,width:"100%",zIndex:0}}>
-        <TileLayer
-          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        />
+        <MapTiles /><MapResizer />
         <MapSelection onPick={choose}/><View point={point} route={route}/>
       {(config?.centres?.filter(c=>c.status==="READY")||(config?.origin?[config.origin]:[])).map(c=><CircleMarker key={c.name} center={[c.coordinates.lat,c.coordinates.lng]} radius={10} pathOptions={{color:"#047857"}}><Popup>Jal Kendra: {c.name}</Popup></CircleMarker>)}
       {point&&<CircleMarker center={[point.lat,point.lng]} radius={9} pathOptions={{color:"#2563eb"}}><Popup>Selected destination</Popup></CircleMarker>}
@@ -74,8 +80,8 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
     {error&&<p role="alert" className="text-red-800">{error}</p>}
     {message&&<p role="status">{message}</p>}
     <div className="flex flex-wrap gap-2">
-      <button className="primary-action" disabled={busy||!point||!config?.origin} onClick={()=>void task(async()=>{const key=selection;const result=await api<Route>("/planning/route",{coordinates:point,...(centreId?{centreId}:{})});if(latest.current===key){setRoute(result);setSent(false);setConfirmed(false);setCode("");setMessage("");}})}>Calculate road route</button>
-      <button className="secondary-action" disabled={!point||busy} onClick={()=>{setContext(null);setError("");setRefresh(n=>n+1);}}>Refresh location data</button>
+      <button className="primary-action" disabled={busy||!point||!config?.origin} onClick={()=>void task(async()=>{const key=selection;const result=await api<Route>("/planning/route",{coordinates:point,...(centreId?{centreId}:{})});if(!result?.id || !Number.isFinite(result.distanceKm) || !Number.isFinite(result.durationMinutes) || !result.origin?.name || !Array.isArray(result.geometry?.coordinates) || result.geometry.coordinates.length<2 || !result.geometry.coordinates.every(p=>Array.isArray(p)&&p.length===2&&p.every(Number.isFinite)))throw new Error("Route service returned invalid road geometry. Please retry.");if(latest.current===key){setRoute(result);setSent(false);setConfirmed(false);setCode("");setMessage("");}})}>Calculate road route</button>
+      <button className="secondary-action" disabled={!point||busy} onClick={()=>{setContextFailed(false);setContext(null);setError("");setRefresh(n=>n+1);}}>Refresh location data</button>
     </div>
     {route&&<div className="rounded-xl bg-sky-50 p-4"><strong>{route.distanceKm.toFixed(1)} km · approximately {route.durationMinutes} minutes</strong><p className="text-sm">{route.algorithm} from {route.origin.name}. Source: {route.source}. Travel time is an estimate; vehicle dimensions and live road closures may change suitability.</p>
       {canConfirm&&<div className="mt-3 space-y-2"><p className="text-sm">Confirm this simulated delivery using a real code sent to your verified account email. Confirmation adds zero real delivered litres.</p>
@@ -83,7 +89,7 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
         {sent&&!confirmed&&<form className="flex flex-wrap gap-2" onSubmit={e=>{e.preventDefault();void task(async()=>{await api("/planning/otp/verify",{id:route.id,code});setConfirmed(true);setCode("");setMessage("Email code verified. Simulated delivery confirmed; no real water delivery recorded.");});}}><label>Email confirmation code<input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>setCode(e.target.value.replace(/\D/g,""))} className="block border rounded p-2"/></label><button disabled={busy} className="primary-action self-end">Confirm simulation</button></form>}
       </div>}
     </div>}
-    {point&&!context&&<p role="status">Loading real weather and population data…</p>}
+    {point&&!context&&!contextFailed&&<p role="status">Loading real weather and population data…</p>}
     {context&&<div className="grid sm:grid-cols-2 gap-3">
       <div className="border rounded-xl p-3"><h4 className="font-bold">Recent weather</h4>{context.weather?<><p>{context.weather.averageTemperatureC}°C seven-day mean · {context.weather.dryDays}{context.weather.drySpellCapped?"+":""} consecutive dry days</p><p>{context.weather.rainfall30DaysMm} mm rain over 30 days. Through {context.weather.endDate}.</p><a className="underline text-sm" href={context.weather.sourceUrl} target="_blank" rel="noreferrer">Open-Meteo model data</a></>:<p>Weather unavailable. No replacement values are used.</p>}</div>
       <div className="border rounded-xl p-3"><h4 className="font-bold">Population density</h4>{context.population?.status==="COMPLETE"?<><p>{context.population.densityPerKm2?.toLocaleString()} people/km²</p><p>Estimated {context.population.population?.toLocaleString()} people in {context.population.areaKm2?.toFixed(2)} km², dataset year {context.population.year}.</p><a className="underline text-sm" href={context.population.sourceUrl} target="_blank" rel="noreferrer">WorldPop Global 2 · CC BY 4.0</a><p className="text-xs">Modeled estimate within the purple grid area, not a live census or exact household count.</p></>:<p>{context.population?.message||"Population unavailable. No density value is invented."}</p>}</div>

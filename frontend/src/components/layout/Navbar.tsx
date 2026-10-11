@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Droplets,
   Map,
@@ -8,13 +7,11 @@ import {
   Cpu,
   RotateCcw,
   Film,
-  X,
   Box,
 } from "lucide-react";
 import type { StakeholderRole } from "../../types";
 import { LIVE_MODE } from "../../services/api";
 import { rolePortals, type AuthSession } from "../../services/auth";
-import MetroHero from "../ui/scroll-locked-video-hero";
 interface Props {
   session: AuthSession | null;
   connected: boolean;
@@ -35,7 +32,6 @@ export function Navbar({
   activeAlertCount,
   onResetDemo,
 }: Props) {
-  const [showHero, setShowHero] = useState(false);
   const roles = [
     { id: "DISPATCHER", label: "Command center", icon: Map },
     { id: "CITIZEN", label: "Citizen portal", icon: Users },
@@ -48,7 +44,7 @@ export function Navbar({
   return (
     <header className="site-header">
       <div className="brand-row">
-        <a href="#" className="brand">
+        <a href="#" className="brand" onClick={() => onSelectRole("LANDING")}>
           <span className="brand-symbol">
             <Droplets size={25} />
           </span>
@@ -60,11 +56,11 @@ export function Navbar({
         <div className="header-right">
           <button
             className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border border-sky-400/50 bg-sky-950/20 hover:bg-sky-900/30 text-sky-800 transition"
-            onClick={() => setShowHero(true)}
-            title="Experience 'The City Opens' Locked Video Hero"
+            onClick={() => onSelectRole("LANDING")}
+            title="Replay the opening animation"
           >
             <Film size={13} className="text-sky-600" />
-            <span>Video Hero</span>
+            <span>Replay intro</span>
           </button>
           {!LIVE_MODE && (
             <span className="region-label">
@@ -142,7 +138,7 @@ export function Navbar({
           .filter(
             ({ id }) =>
               !LIVE_MODE ||
-              id === "AWS_ARCHITECTURE" ||
+              ["AWS_ARCHITECTURE", "LANDING", "HEATMAP", "PUBLIC_BOARD"].includes(id) ||
               session?.roles.some((role) => rolePortals[role] === id),
           )
           .map(({ id, label, icon: Icon }, i) => (
@@ -162,17 +158,6 @@ export function Navbar({
             </button>
           ))}
       </nav>
-      {showHero && (
-        <div className="fixed inset-0 z-[99999] bg-black">
-          <button
-            onClick={() => setShowHero(false)}
-            className="fixed top-6 right-6 z-[100000] px-4 py-2 rounded-full bg-slate-900/90 text-white border border-white/20 text-xs font-mono font-bold tracking-wider hover:bg-slate-800 shadow-2xl flex items-center gap-2 cursor-pointer transition backdrop-blur-md"
-          >
-            <X size={15} /> EXIT "THE CITY OPENS"
-          </button>
-          <MetroHero />
-        </div>
-      )}
     </header>
   );
 }

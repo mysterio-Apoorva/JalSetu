@@ -36,7 +36,7 @@ export function CommunityArchHero() {
         {/* Outer Left Badge: Release Shipped */}
         <div className="absolute top-[160px] left-[8%] sm:left-[14%] flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100/90 text-emerald-800 text-[11px] font-semibold border border-emerald-300 shadow-sm animate-pulse">
           <Check size={12} className="text-emerald-600" />
-          <span>Trip Verified</span>
+          <span>Resident confirmation</span>
         </div>
 
         {/* Left Avatar: Resident */}
@@ -49,19 +49,19 @@ export function CommunityArchHero() {
         {/* Top-Left Activity: Rocket */}
         <div className="absolute top-[80px] left-[28%] sm:left-[32%] flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs shadow-md">
           <Rocket size={13} className="text-rose-500" />
-          <span className="font-bold text-slate-700 text-[11px]">12</span>
+          <span className="font-bold text-slate-700 text-[11px]">Route</span>
         </div>
 
         {/* Top-Left Inner: Fire Flame */}
         <div className="absolute top-[140px] left-[32%] sm:left-[35%] flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-[10px] shadow-sm">
           <Flame size={12} className="text-orange-500" />
-          <span className="font-semibold text-slate-700">18</span>
+          <span className="font-semibold text-slate-700">Need</span>
         </div>
 
         {/* Top-Center Badge: Active Discussions */}
         <div className="absolute top-[40px] left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 border border-slate-200 text-xs font-medium text-slate-700 shadow-sm">
           <MessageSquare size={13} className="text-sky-500" />
-          <span>8 New Requests</span>
+          <span>Household requests</span>
         </div>
 
         {/* Center Node Avatar: Dispatcher */}
@@ -74,7 +74,7 @@ export function CommunityArchHero() {
         {/* Top-Right Star Rating */}
         <div className="absolute top-[80px] right-[28%] sm:right-[32%] flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white border border-slate-200 text-xs shadow-md">
           <Star size={13} className="text-amber-500 fill-amber-400" />
-          <span className="font-bold text-slate-700 text-[11px]">240</span>
+          <span className="font-bold text-slate-700 text-[11px]">Review</span>
         </div>
 
         {/* Center-Right: Package Deliveries */}
@@ -96,36 +96,36 @@ export function CommunityArchHero() {
 
         {/* Far Right Counter */}
         <div className="absolute top-[170px] right-[10%] sm:right-[12%] flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white border border-slate-200 text-[10px] text-slate-600 shadow-sm">
-          <span>💧 38</span>
+          <span>💧 Water</span>
         </div>
       </div>
 
-      {/* Main Metric Counters (12K+ | 340+ | 2.5M+) */}
+      {/* Main Metric Counters (Report | Route | Verify) */}
       <div className="relative z-10 flex items-center justify-center gap-8 sm:gap-16 pt-2 pb-6">
         <div>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-mono">
-            12K+
+          <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
+            Report
           </div>
           <div className="text-xs font-semibold text-slate-500 mt-0.5">
-            Verified Residents
+            Household needs
           </div>
         </div>
         <div className="w-px h-10 bg-slate-200" />
         <div>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-mono">
-            340+
+          <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
+            Route
           </div>
           <div className="text-xs font-semibold text-slate-500 mt-0.5">
-            Active Tankers
+            Road planning
           </div>
         </div>
         <div className="w-px h-10 bg-slate-200" />
         <div>
-          <div className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 font-mono">
-            2.5M+
+          <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-slate-900 font-mono">
+            Verify
           </div>
           <div className="text-xs font-semibold text-slate-500 mt-0.5">
-            Liters Dispensed
+            Delivery evidence
           </div>
         </div>
       </div>

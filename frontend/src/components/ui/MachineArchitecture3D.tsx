@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useAnimationVisibility } from "../../hooks/useAnimationVisibility";
+import { useElementWidth } from "../../hooks/useElementWidth";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Layers,
   Play,
@@ -19,7 +21,6 @@ interface Station {
   resourceName: string;
   description: string;
   security: string;
-  codeSnippet: string;
   input: string;
   output: string;
   trackAngleDeg: number; // position on track 0-360
@@ -31,65 +32,62 @@ const STATIONS: Station[] = [
   {
     id: "01",
     stepNum: "01",
-    name: "Engine",
+    name: "Intake",
     role: "Intake & Auth",
-    stepLabel: "Step 2 · script",
+    stepLabel: "Step 1 · intake",
     awsService: "Amazon API Gateway + Cognito",
-    resourceName: "jalsetu-IntakeFunction-oo6CqrK52ovO",
+    resourceName: "backend/lambdas/citizen-request-intake/index.js",
     description:
       "Validates incoming requests with Amazon Cognito JWT bearer tokens. Enforces fail-closed role-based access control and rate-limits surge traffic before downstream invocation.",
-    security: "Cognito User Pool IDP, JWT Signature Verification, WAF Throttling",
+    security: "Cognito User Pool IDP, JWT Signature Verification, API Gateway Throttling",
     input: "Citizen mobile grievance with resident telephone & locality pin",
     output: "Authenticated, normalized JSON event with idempotency UUID",
     trackAngleDeg: 30,
     x: 210,
     y: 130,
-    codeSnippet: `export const handler = async (event) => {\n  const auth = await verifyJwt(event.headers.authorization);\n  if (!auth.isValid) return { statusCode: 401 };\n  return await pushToSurgeQueue(event.body);\n};`,
   },
   {
     id: "02",
     stepNum: "02",
-    name: "Admin",
+    name: "Queue",
     role: "Queue & Buffer",
-    stepLabel: "Step 3 · video",
+    stepLabel: "Step 2 · queue",
     awsService: "Amazon SQS FIFO + DLQ",
-    resourceName: "jalsetu-SurgeQueue-j0o0hCJI6m4c.fifo",
+    resourceName: "backend/sqs/resource.yaml",
     description:
-      "Guarantees exactly-once processing with MessageDeduplicationId. Buffers burst requests during heatwave crises and isolates toxic payloads into an encrypted Dead-Letter Queue.",
-    security: "KMS SSE Encryption, Strict FIFO Message Grouping, DLQ Retries",
+      "Deduplicates queue sends using MessageDeduplicationId; consumers handle retries idempotently. Buffers burst requests during heatwave crises and isolates toxic payloads into an encrypted Dead-Letter Queue.",
+    security: "Server-Side Encryption, FIFO Message Grouping, DLQ Retries",
     input: "Burst citizen requests during peak heatwaves",
     output: "Ordered, deduplicated batch payloads routed to triage workers",
     trackAngleDeg: 100,
     x: 390,
     y: 110,
-    codeSnippet: `await sqs.send(new SendMessageCommand({\n  QueueUrl: SURGE_QUEUE_URL,\n  MessageBody: JSON.stringify(request),\n  MessageGroupId: request.wardId,\n  MessageDeduplicationId: request.idempotencyKey\n}));`,
   },
   {
     id: "03",
     stepNum: "03",
-    name: "Storefront",
+    name: "Triage",
     role: "Bedrock AI Triage",
-    stepLabel: "Step 4 · post",
-    awsService: "Amazon Bedrock (Nova Lite / Claude 3.5)",
-    resourceName: "jalsetu-ClassifierFunction-7EstYcVshTWL",
+    stepLabel: "Step 3 · triage",
+    awsService: "Amazon Bedrock (Nova Lite)",
+    resourceName: "backend/lambdas/bedrock-urgency-classifier/index.js",
     description:
-      "Processes multilingual resident voice notes and text in Hindi, Punjabi, and English. Evaluates consecutive dry days and infant/elder counts to calculate an equitable urgency index (0-100).",
-    security: "IAM Service Role, Zero Data Retention for Training, Schema Guardrails",
-    input: "Multilingual resident transcripts + days without water + infant count",
+      "Classifies written operational complaints using outage duration and reported vulnerability. The separate household pilot uses its versioned priority formula.",
+    security: "IAM Service Role, Validated Model Output",
+    input: "Written complaint + outage days + vulnerable residents",
     output: "Normalized urgency score, triage tier, and priority justification",
     trackAngleDeg: 190,
     x: 620,
     y: 160,
-    codeSnippet: `const response = await bedrock.send(new ConverseCommand({\n  modelId: "us.amazon.nova-lite-v1:0",\n  messages: [{ role: "user", content: [{ text: prompt }] }],\n  system: [{ text: "Classify urgency 0-100 without hallucinations." }]\n}));`,
   },
   {
     id: "04",
     stepNum: "04",
-    name: "Cabinet",
+    name: "Delivery",
     role: "Verification Core",
-    stepLabel: "Step 1 · order",
+    stepLabel: "Step 4 · proof",
     awsService: "AWS Step Functions + Location",
-    resourceName: "DeliveryWorkflow-f4iRbV3YXpTl",
+    resourceName: "backend/lambdas/pod-verification-handler/index.js",
     description:
       "Executes the anti-corruption 3-way delivery handshake: verifies resident dynamic OTP, bounds driver GPS within the 200m geofence, and validates S3 discharge photographic proof.",
     security: "State Machine Deduplication, Single-Use OTP Hashes, S3 SHA-256 Checksum",
@@ -98,16 +96,15 @@ const STATIONS: Station[] = [
     trackAngleDeg: 280,
     x: 670,
     y: 290,
-    codeSnippet: `const isOtpValid = hash(driverOtp) === expectedHash;\nconst isGpsValid = distance(driverGps, dropGps) <= 200;\nif (isOtpValid && isGpsValid && photoValidated) {\n  await stepFunctions.sendTaskSuccess({ output });\n}`,
   },
   {
     id: "05",
     stepNum: "05",
-    name: "Checkout",
+    name: "Ledger",
     role: "Audit Ledger",
-    stepLabel: "Step 5 · payment",
+    stepLabel: "Step 5 · audit",
     awsService: "Amazon DynamoDB Single Table",
-    resourceName: "JalSetu-Core (Single-Table Design)",
+    resourceName: "backend/shared/audit.js",
     description:
       "Atomic ACID transactions settle water inventory and record cryptographic delivery hashes. TransactWriteItems prevents double-counting and ensures tamper-evident civic transparency.",
     security: "Point-in-Time Recovery (PITR), At-Rest KMS Encryption, ConditionExpressions",
@@ -116,7 +113,6 @@ const STATIONS: Station[] = [
     trackAngleDeg: 350,
     x: 350,
     y: 330,
-    codeSnippet: `await db.send(new TransactWriteCommand({\n  TransactItems: [\n    { Update: { TableName: "JalSetu-Core", Key: key("REQUEST", id) } },\n    { Put: { TableName: "JalSetu-Core", Item: auditRecord } }\n  ]\n}));`,
   },
 ];
 
@@ -127,34 +123,28 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
   const [selectedStation, setSelectedStation] = useState<Station>(STATIONS[0]);
   const [viewAngle, setViewAngle] = useState<ViewMode>("overview");
   const [stateMode, setStateMode] = useState<StateMode>("stations");
-  const [isSimulating, setIsSimulating] = useState(false);
+  const [isSimulating, setIsSimulating] = useState(true);
+  const { ref, active } = useAnimationVisibility();
+  const angle = useRef(0);
+  const { ref: stageRef, width: stageWidth } = useElementWidth();
+  const stageScale = Math.min(1, stageWidth / 900);
   const [tankerPositionDeg, setTankerPositionDeg] = useState(0);
 
-  // Animated Tanker Loop & Simulation Stepper
   useEffect(() => {
-    let animId: number;
-    const speed = isSimulating ? 1.2 : 0.4;
-
-    const loop = () => {
-      setTankerPositionDeg((prev) => {
-        const next = (prev + speed) % 360;
-        if (isSimulating) {
-          // Identify which station the tanker is currently closest to
-          const active = STATIONS.find(
-            (s) => Math.abs(s.trackAngleDeg - next) < 25 || Math.abs(s.trackAngleDeg - next + 360) < 25
-          );
-          if (active && active.id !== selectedStation.id) {
-            setSelectedStation(active);
-          }
-        }
-        return next;
-      });
-      animId = requestAnimationFrame(loop);
+    if (!active || !isSimulating) return;
+    let frame = 0, last = 0;
+    const loop = (time: number) => {
+      const elapsed = last ? Math.min(time - last, 80) : 0;
+      last = time;
+      angle.current = (angle.current + elapsed * 0.035) % 360;
+      setTankerPositionDeg(angle.current);
+      const station = STATIONS.find(s => Math.abs(((s.trackAngleDeg - angle.current + 540) % 360) - 180) < 25);
+      if (station) setSelectedStation(station);
+      frame = requestAnimationFrame(loop);
     };
-
-    animId = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(animId);
-  }, [isSimulating, selectedStation.id]);
+    frame = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(frame);
+  }, [active, isSimulating]);
 
   // View Angle Transforms matching Image 3
   const getPerspectiveStyle = () => {
@@ -189,7 +179,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
   const tankerPos = getTankerCoords(tankerPositionDeg);
 
   return (
-    <div
+    <div ref={ref} data-testid="architecture-animation" data-animating={active && isSimulating}
       className={`w-full rounded-3xl bg-[#05080e] border border-orange-950/50 text-slate-100 p-6 md:p-8 shadow-2xl relative overflow-hidden font-sans select-none ${
         className || ""
       }`}
@@ -212,7 +202,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
             5 MODULES / 1 SERVERLESS SYSTEM
           </h2>
           <p className="text-xs text-slate-400 mt-1 max-w-xl">
-            Delhi's verified municipal water distribution architecture running end-to-end on AWS.
+            Animated architecture walkthrough. This illustration does not represent live dispatch activity.
           </p>
         </div>
 
@@ -220,25 +210,25 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-orange-950/50 border border-orange-500/40 text-orange-300 text-xs font-mono">
             <span className="w-2 h-2 rounded-full bg-orange-400 animate-ping" />
-            <span>CIRCUIT ACTIVE</span>
+            <span>{active && isSimulating ? "WALKTHROUGH PLAYING" : "WALKTHROUGH PAUSED"}</span>
           </div>
         </div>
       </div>
 
       {/* 3D Interactive Cybernetic Machine Stage */}
-      <div className="relative w-full h-[460px] md:h-[520px] flex items-center justify-center overflow-hidden my-6 bg-[#070b12] rounded-2xl border border-slate-800/80">
+      <div ref={stageRef} style={{ height: Math.max(220, 520 * stageScale) }} className="relative w-full flex items-center justify-center overflow-hidden my-6 bg-[#070b12] rounded-2xl border border-slate-800/80">
         {/* The 3D Canvas Transform Container */}
         <div
           className="relative w-full h-full flex items-center justify-center transition-all duration-700 ease-out"
           style={{
             perspective: "1200px",
-            transform: getPerspectiveStyle(),
+            transform: `scale(${stageScale}) ${getPerspectiveStyle()}`,
             transformStyle: "preserve-3d",
           }}
         >
           {/* Main 3D Metallic Circuit Board / Industrial Platform Tray */}
           <div
-            className="relative w-[780px] h-[480px] rounded-[36px] bg-[#0c121d] border-2 border-slate-700 shadow-2xl transition-all duration-500"
+            className="relative shrink-0 w-[780px] h-[480px] rounded-[36px] bg-[#0c121d] border-2 border-slate-700 shadow-2xl transition-all duration-500"
             style={{
               boxShadow:
                 "0 30px 60px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,255,255,0.1), 0 0 40px rgba(217,119,6,0.15)",
@@ -247,7 +237,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
             {/* Metallic rim highlights */}
             <div className="absolute inset-2 rounded-[28px] border border-orange-500/20 pointer-events-none" />
             <div className="absolute top-4 left-6 text-[10px] font-mono text-slate-400 tracking-widest">
-              STARTER · site · database · admin in 35 minutes · JALSETU-NCT-DELHI
+              JALSETU · WATER OPERATIONS · ARCHITECTURE WALKTHROUGH
             </div>
 
             {/* SVG Circuit Tracks & Conveyor Path */}
@@ -323,7 +313,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
               <strong className="text-xs text-white mt-1">JalSetu Event Engine</strong>
               <div className="flex items-center gap-1.5 mt-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                <span className="text-[10px] font-mono text-emerald-400">100% AUDITABLE</span>
+                <span className="text-[10px] font-mono text-emerald-400">AUDIT WORKFLOW</span>
               </div>
             </div>
 
@@ -334,7 +324,9 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
               return (
                 <div
                   key={station.id}
-                  onClick={() => setSelectedStation(station)}
+                  role="button" tabIndex={0} aria-label={`Inspect ${station.role}`}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedStation(station); setIsSimulating(false); } }}
+                  onClick={() => { setSelectedStation(station); setIsSimulating(false); }}
                   className="absolute cursor-pointer transition-all duration-300 z-20 group"
                   style={{
                     left: `${station.x}px`,
@@ -414,7 +406,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
         </div>
 
         {/* Right: Camera View Controls (Overview, Side, Top, Station, Flight) */}
-        <div className="flex items-center gap-4 text-xs font-mono text-slate-400">
+        <div className="flex flex-wrap justify-center items-center gap-4 text-xs font-mono text-slate-400">
           <span className="text-[11px] text-slate-400 uppercase tracking-wider">VIEW</span>
           {(["overview", "side", "top", "station", "flight"] as const).map((angle) => (
             <button
@@ -456,7 +448,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
             <h3 className="text-xl font-bold text-white mt-1">
               {selectedStation.name}: {selectedStation.role}
             </h3>
-            <code className="text-xs text-slate-400 font-mono mt-0.5 block">
+            <code className="text-xs text-slate-400 font-mono mt-0.5 block break-all">
               {selectedStation.resourceName}
             </code>
           </div>
@@ -475,10 +467,10 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
           <div className="bg-[#05080e] p-4 rounded-xl border border-slate-800">
             <span className="text-[11px] font-mono text-orange-400 block mb-2">
-              CODE IMPLEMENTATION
+              IMPLEMENTATION SOURCE
             </span>
             <pre className="text-xs font-mono text-slate-300 overflow-x-auto leading-relaxed">
-              <code>{selectedStation.codeSnippet}</code>
+              <a href={`https://github.com/mysterio-Apoorva/JalSetu/blob/main/${selectedStation.resourceName}`} target="_blank" rel="noreferrer" className="underline whitespace-normal break-all">Read the implementation in the project repository</a>
             </pre>
           </div>
 

@@ -3,27 +3,27 @@ import React from "react";
 export function ProductTimeline() {
   const milestones = [
     {
-      date: "2024 November",
+      date: "01 · Confirm",
       title: "Stage 01: Cryptographic Handshake",
-      description: "Mathematical solution to water diversion: 6-digit dynamic OTP hashed with SHA-256, eliminating ghost trips.",
+      description: "A single-use resident code joins location and photo evidence in the delivery verification process.",
       direction: "up",
     },
     {
-      date: "2025 March",
+      date: "02 · Coordinate",
       title: "Stage 02: AWS Step Functions Pipeline",
       description: "Full state machine orchestration coordinating intake, triage, geofence bounding, and driver dispatch.",
       direction: "down",
     },
     {
-      date: "2025 July",
+      date: "03 · Prioritize",
       title: "Stage 03: Bedrock Nova Lite & SQS FIFO",
-      description: "Generative AI multi-lingual urgency triage processing Hindi voice notes with zero dropped requests during 46°C heatwave.",
+      description: "Written operational complaints are queued for Bedrock urgency classification. Household pilot reports use a separate transparent formula.",
       direction: "up",
     },
     {
-      date: "2025 November",
+      date: "04 · Record",
       title: "Stage 04: Public Equity Ledger",
-      description: "Immutable civic transparency dashboard verifying 100% of delivered liters across Delhi's 250 municipal wards.",
+      description: "Public transparency dashboard showing recorded delivery volumes and available audit evidence.",
       direction: "down",
     },
   ];
@@ -34,14 +34,14 @@ export function ProductTimeline() {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-16 gap-4">
         <div>
           <span className="text-[11px] font-mono font-bold tracking-widest text-orange-400 uppercase">
-            Product Architecture & Evolution
+            From request to delivery
           </span>
           <h2 className="text-3xl font-extrabold tracking-tight mt-1 text-slate-100 font-sans">
-            Product Storyline
+            How the network connects
           </h2>
         </div>
         <div className="font-mono text-xs text-slate-400 bg-slate-900/80 px-3 py-1.5 rounded-lg border border-slate-800 w-fit">
-          2024 — 2026
+          Operational workflow
         </div>
       </div>
 

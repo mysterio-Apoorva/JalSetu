@@ -58,7 +58,7 @@ r['StreamDLQ']={'Type':'AWS::SQS::Queue','Properties':{'SqsManagedSseEnabled':Tr
 r['IntakeFunction']['Properties']['Events']['Stream']['Properties']['DestinationConfig']={'OnFailure':{'Type':'SQS','Destination':A('StreamDLQ')}}
 r['IntakeFunction']['Properties']['Events']['Queue']={'Type':'SQS','Properties':{'Queue':A('SurgeQueue'),'BatchSize':1,'FunctionResponseTypes':['ReportBatchItemFailures']}}
 function('ClassifierFunction','bedrock-urgency-classifier',[('/copilot','POST')],{'BEDROCK_MODEL_ID':R('BedrockModelId')},[stmt(['bedrock:InvokeModel'],[S('arn:${AWS::Partition}:bedrock:*::foundation-model/*'),S('arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/*'),S('arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:application-inference-profile/*')])])
-function('OptimizerFunction','vrp-route-optimizer',[('/optimize','POST')],{'ROUTE_CALCULATOR_NAME':R('Routes')},[stmt(['geo:CalculateRouteMatrix'],A('Routes'))])
+function('OptimizerFunction','vrp-route-optimizer',[('/optimize','POST')],{'ROUTE_CALCULATOR_NAME':R('Routes')},[stmt(['geo:CalculateRouteMatrix','geo:CalculateRoute'],A('Routes'))])
 r['OptimizerFunction']['Properties']['Timeout']=60
 r['OptimizerFunction']['Properties']['Events']['Batch']={'Type':'Schedule','Properties':{'Schedule':'rate(10 minutes)','Enabled':True}}
 function('TelemetryFunction','geofence-telemetry-processor',[('/telemetry','POST')],{'TRACKER_NAME':R('Tracker'),'GEOFENCE_COLLECTION_NAME':R('Geofences')},[eventpolicy,stmt(['geo:BatchUpdateDevicePosition'],A('Tracker')),stmt(['geo:BatchEvaluateGeofences'],A('Geofences'))])

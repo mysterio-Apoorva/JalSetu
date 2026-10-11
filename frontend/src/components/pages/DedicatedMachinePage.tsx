@@ -45,10 +45,10 @@ export function DedicatedMachinePage() {
           </div>
           <h3 className="text-lg font-bold">3. S3 Photographic Fingerprint</h3>
           <p className="text-xs text-slate-300 leading-relaxed">
-            The driver uploads a discharge photo. The file magic numbers (JPEG headers) are verified, and an immutable SHA-256 hash is computed and stored in the municipal audit ledger for civic verification.
+            The driver uploads a discharge photo. The file magic numbers (JPEG headers) are verified, and an SHA-256 hash is computed and stored in the municipal audit ledger for civic verification.
           </p>
           <div className="text-[11px] font-mono text-purple-400 pt-2 border-t border-slate-800">
-            KMS-Encrypted Bucket · Versioned Object Store
+            Encrypted Bucket · Versioned Object Store
           </div>
         </div>
       </div>
@@ -57,9 +57,9 @@ export function DedicatedMachinePage() {
       <div className="rounded-3xl bg-[#070b12] border border-orange-950/60 p-6 md:p-8 text-white space-y-4">
         <div className="flex items-center gap-2 text-xs font-mono text-orange-400">
           <Terminal size={15} />
-          <span>AWS SAM TEMPLATE PARITY (infra/template.yaml)</span>
+          <span>INFRASTRUCTURE DEFINED IN AWS SAM</span>
         </div>
-        <h4 className="text-xl font-bold">Production Infrastructure Specifications</h4>
+        <h4 className="text-xl font-bold">Infrastructure configuration</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono text-slate-300 pt-2">
           <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800">
             <span className="text-slate-500 block text-[10px]">AUTH STACK</span>

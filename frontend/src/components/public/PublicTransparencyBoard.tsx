@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { formatLiters } from "../../utils/formatters";
 import { EvidenceViewer } from "./EvidenceViewer";
-import { IsometricWaterHeatmap } from "../ui/IsometricWaterHeatmap";
+import { ContributionSkyline3D } from "../ui/ContributionSkyline3D";
 
 interface PublicTransparencyBoardProps {
   wards: Ward[];
@@ -38,6 +38,7 @@ export const PublicTransparencyBoard: React.FC<
     const refresh = () =>
       api("/public")
         .then((data) => {
+          if (!Array.isArray(data?.wards) || !Array.isArray(data?.deliveries)) throw new Error("Public service returned invalid data. Please retry later.");
           if (mounted) {
             setPublicData(data);
             setError("");
@@ -210,7 +211,7 @@ export const PublicTransparencyBoard: React.FC<
       </div>
 
       {/* 3D Isometric 365-Day Water Contribution & Equity Matrix */}
-      <IsometricWaterHeatmap className="w-full shadow-lg" />
+      <ContributionSkyline3D deliveries={requests} className="w-full shadow-lg" />
 
       <div className="glossy-panel rounded-2xl p-5">
         <h3 className="font-bold text-slate-800">Verified delivery ledger</h3>

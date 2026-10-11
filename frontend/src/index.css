@@ -972,3 +972,17 @@ button:disabled {
   margin: 12px !important;
   line-height: 1.4 !important;
 }
+
+/* Honor motion preferences across CSS and SVG decoration. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+button:focus-visible, a:focus-visible, [role="button"]:focus-visible {
+  outline: 3px solid #0284c7;
+  outline-offset: 3px;
+}

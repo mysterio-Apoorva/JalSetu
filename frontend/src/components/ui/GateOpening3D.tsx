@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useAnimationVisibility } from "../../hooks/useAnimationVisibility";
 import { ShinyButton } from "./ShinyButton";
 import { Lock, Unlock, Droplets, ArrowRight } from "lucide-react";
 
@@ -7,20 +8,24 @@ interface GateOpeningProps {
 }
 
 export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
   const [isAnimating, setIsAnimating] = useState(false);
+  const { ref, entered, reducedMotion } = useAnimationVisibility();
+  const isOpen = manualOpen ?? (entered || reducedMotion);
+  useEffect(() => {
+    if (!isAnimating) return;
+    const timer = setTimeout(() => setIsAnimating(false), 1200);
+    return () => clearTimeout(timer);
+  }, [isAnimating]);
 
   const toggleGate = () => {
     if (isAnimating) return;
     setIsAnimating(true);
-    setIsOpen((prev) => !prev);
-    setTimeout(() => {
-      setIsAnimating(false);
-    }, 1200);
+    setManualOpen(!isOpen);
   };
 
   return (
-    <div className="relative w-full overflow-hidden py-16 px-4 flex flex-col items-center justify-center text-center bg-[#05070c] rounded-3xl border border-orange-950/50 shadow-2xl my-8">
+    <div ref={ref} data-testid="automatic-gate" data-open={isOpen} className="relative w-full overflow-hidden py-16 px-4 flex flex-col items-center justify-center text-center bg-[#05070c] rounded-3xl border border-orange-950/50 shadow-2xl my-8">
       {/* Background Ambient Mist & Light */}
       <div className="absolute inset-0 bg-radial from-orange-950/20 via-[#070b14] to-[#04060a] pointer-events-none" />
 
@@ -34,7 +39,7 @@ export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
           The Sluice Gates of Delhi
         </h2>
         <p className="text-xs sm:text-sm text-slate-400 mt-2">
-          Experience the 3D hydraulic gate sequence securing municipal dispatch. Toggle to release the pressurized flow into the civic network.
+          The gates open as you explore. An illustration of the connection between residents and water operations.
         </p>
       </div>
 
@@ -50,10 +55,10 @@ export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
             <Droplets size={44} className="text-sky-400" />
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-white tracking-wide">
-            HYDRAULIC PRESSURE AT EQUILIBRIUM
+            CONNECTING EVERY DROP
           </h3>
           <p className="text-xs text-slate-300 max-w-md mt-2 font-mono">
-            Direct telemetry link established with 340 tankers & 250 wards. Cryptographic ledger ready for verification.
+            Report your water needs, explore road routes, and follow recorded deliveries.
           </p>
           {onEnterProject && (
             <button
@@ -70,7 +75,7 @@ export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
         <div className="absolute top-0 inset-x-0 h-8 bg-slate-900 border-b border-slate-800 z-30 flex items-center justify-between px-6">
           <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
             <span className={`w-2 h-2 rounded-full ${isOpen ? "bg-emerald-500 animate-ping" : "bg-orange-500"}`} />
-            <span>PRESSURE: {isOpen ? "RELEASED (0.0 PSI)" : "NOMINAL (450 PSI)"}</span>
+            <span>{isOpen ? "GATE OPEN" : "GATE CLOSED"} · ILLUSTRATION</span>
           </div>
           <div className="text-[10px] font-mono text-slate-500">SECTOR-09 / DELHI REGION</div>
         </div>

@@ -8,7 +8,7 @@ def verify():
     bundle = '\n'.join(p.read_text(encoding='utf-8') for p in folder.rglob('*.js'))
     banned = ['CitizenPass123!', 'DriverPass123!', 'DispatcherPass123!', 'AuditorPass123!',
               'citizen@jalsetu.local', 'Sunita Sharma', 'Anil Aggarwal', 'DL-01-TK-101', 'Simulate Hindi Voice Note',
-              'FRAUD-GHOST-TRIP-CAUGHT', 'Interactive demo']
+              'FRAUD-GHOST-TRIP-CAUGHT', 'Interactive demo', 'Load Demo Service Areas', 'jalsetu.demo_data', 'TK-DELHI-01', 'Kavita Devi', 'Direct telemetry link established with 340 tankers']
     found = [value for value in banned if value in bundle]
     assert not found, 'Development fixtures remain in production bundle: '+', '.join(found)
     assert not list(folder.rglob('*.map')), 'Source maps must not be published'

@@ -2,13 +2,97 @@ import { test, expect, type Page } from '@playwright/test';
 import { mockAuth } from './auth-fixture';
 const empty = { wards: [], depots: [], fleet: [], requests: [], anomalies: [] };
 test.beforeEach(async ({page})=>{
+  await page.route('**/api/v1/public', r => r.fulfill({json:{wards:[],deliveries:[],anomalyCount:0}}));
   await page.route('**/api/v1/needs',r=>r.fulfill({json:{reports:[],own:null,imageGenerationEnabled:false}}));
   await page.route('**/api/v1/planning/config',r=>r.fulfill({json:{origin:{name:'Test Jal Kendra',coordinates:{lat:28.6,lng:77.2}},otpEnabled:true}}));
   await page.route('**/api/v1/planning/context',r=>r.fulfill({json:{weather:{dryDays:6,averageTemperatureC:32,rainfall30DaysMm:12,endDate:'2026-10-10',sourceUrl:'https://open-meteo.com/en/docs'},population:{status:'COMPLETE',population:10000,densityPerKm2:2500,areaKm2:4,year:2025,sourceUrl:'https://api.worldpop.org/v2/'},errors:[]}}));
 });
+
+test('landing scrolls freely, gates open automatically, and signup opens registration', async ({page}) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.route('https://cdn.21st.dev/**', r => r.abort());
+  await page.goto('/');
+  await expect(page.getByRole('heading', {name:'THE CITY OPENS'})).toBeVisible();
+  expect(await page.evaluate(() => document.body.style.position)).not.toBe('fixed');
+  const gate = page.getByTestId('automatic-gate');
+  await gate.scrollIntoViewIfNeeded();
+  await expect(gate).toHaveAttribute('data-open', 'true');
+  await page.setViewportSize({width:360,height:800});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({path:'../.runtime/landing-mobile-fixed.png',fullPage:true});
+  await page.getByRole('button',{name:'Create account',exact:true}).click();
+  await expect(page.getByLabel('Confirm password')).toBeVisible();
+  await page.goBack();
+  await expect(page.getByRole('heading', {name:'THE CITY OPENS'})).toBeVisible();
+  expect(errors).toEqual([]);
+});
+
+test('architecture animates on entry and respects reduced motion', async ({page}) => {
+  await page.goto('/#architecture');
+  await expect(page.getByTestId('architecture-animation')).toHaveAttribute('data-animating','true');
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await expect(page.getByTestId('architecture-animation')).toHaveAttribute('data-animating','false');
+  await page.setViewportSize({width:360,height:800});
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.screenshot({path:'../.runtime/architecture-mobile-fixed.png',fullPage:true});
+});
+
+test('failed delivery verification cannot create local evidence or consume inventory', async ({page,context}) => {
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({latitude:28.6,longitude:77.2,accuracy:10});
+  const stop={requestId:'real-request',stopIndex:1,coordinates:{lat:28.6,lng:77.2},wardName:'Verified ward',demandLiters:2000,etaMinutes:5,isCompleted:false,urgencyTier:'HIGH_PRIORITY'};
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:{...empty,fleet:[{id:'assigned-tanker',vehicleNumber:'Verified vehicle',driverName:'Assigned driver',driverPhone:'',depotName:'Verified depot',status:'EN_ROUTE',assignedRoute:[stop],currentCoordinates:stop.coordinates,capacityLiters:10000,currentWaterLevelLiters:5000,speedKmph:0}],requests:[]}}));
+  await page.route('**/api/v1/delivery/verify',r=>r.fulfill({status:503,json:{message:'Evidence storage unavailable'}}));
+  await signIn(page,'Driver');
+  await page.getByLabel('Resident OTP').fill('123456');
+  await page.getByLabel('Liters delivered').fill('2000');
+  const photo=await page.screenshot({type:'jpeg',clip:{x:0,y:0,width:320,height:240}});
+  await page.getByLabel('Delivery evidence photo').setInputFiles({name:'evidence.jpg',mimeType:'image/jpeg',buffer:photo});
+  await page.getByRole('button',{name:'Verify delivery',exact:true}).click();
+  await expect(page.getByText('Evidence storage unavailable')).toBeVisible();
+  await expect(page.getByText('Verified ward',{exact:true})).toBeVisible();
+  await expect(page.locator('code')).toHaveCount(0);
+});
+
+test('skyline shows only real returned audit records', async ({page}) => {
+  await page.route('**/api/v1/public',r=>r.fulfill({json:{wards:[],deliveries:[
+    {id:'audit-1',status:'DELIVERED_VERIFIED',litersDelivered:250,deliveredAt:new Date().toISOString(),wardId:'verified-ward'},
+    {id:'simulation',status:'SIMULATED',litersDelivered:9000,deliveredAt:new Date().toISOString()},
+  ]}}));
+  await page.goto('/#skyline');
+  await expect(page.getByRole('heading',{name:'1 Recorded Deliveries · Last 52 Weeks'})).toBeVisible();
+  const day=page.getByRole('button',{name:/1 deliveries, 250 litres/});
+  await day.focus();
+  await expect(page.getByText('250 Liters')).toBeVisible();
+  await expect(page.getByText('0.24 / 1.0')).toHaveCount(0);
+});
+
+test('failed optimization keeps the queue unchanged and displays the AWS error', async ({page}) => {
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
+  await page.route('**/api/v1/optimize',r=>r.fulfill({status:503,json:{message:'Routing service unavailable'}}));
+  await signIn(page,'Dispatcher');
+  await page.getByRole('button',{name:'Dispatch pending requests'}).click();
+  await expect(page.getByRole('alert')).toContainText('Routing service unavailable');
+  await expect(page.getByRole('button',{name:/Load Demo/})).toHaveCount(0);
+  await expect(page.getByText('TK-DELHI-01')).toHaveCount(0);
+});
+
+test('map tile failures provide a retry and resizing preserves the map',async({page})=>{
+  await page.route('**/api/v1/snapshot',r=>r.fulfill({json:empty}));
+  await page.route('https://tile.openstreetmap.org/**',r=>r.abort());
+  await signIn(page,'Citizen');
+  await expect(page.getByRole('button',{name:'Retry map'})).toBeVisible();
+  await page.setViewportSize({width:360,height:800});
+  const map=page.locator('.leaflet-container').first();
+  await expect(map).toBeVisible();
+  expect((await map.boundingBox())!.width).toBeLessThan(360);
+  await page.getByRole('button',{name:'Retry map'}).click();
+  await expect(page.getByRole('button',{name:'Retry map'})).toBeVisible();
+});
 async function signIn(page: Page, role: string, connected = true) {
   await mockAuth(page, role);
-  await page.goto('/');
+  await page.goto('/#signin');
   await expect(page.getByRole('button', { name: /Demo$/ })).toHaveCount(0);
   await page.getByLabel('Email address').fill('operator@example.org');
   await page.getByLabel('Password', { exact: true }).fill('BrowserTest123!');
@@ -111,7 +195,7 @@ test('invalid needs response does not crash the signed-in workspace',async({page
 });
 test('published resident signup cannot choose a staff role and empty data stays empty', async ({ page }) => {
   await page.route('**/api/v1/snapshot', r => r.fulfill({ json: empty }));
-  await page.goto('/');
+  await page.goto('/#signin');
   await page.getByRole('button', { name: 'Create account', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Dispatcher', exact: true })).toHaveCount(0);
   await signIn(page, 'Citizen');

@@ -2,6 +2,7 @@ const c = require("../../shared/core");
 const {
   LocationClient,
   CalculateRouteMatrixCommand,
+  CalculateRouteCommand,
 } = require("@aws-sdk/client-location");
 const location = new LocationClient({ maxAttempts: 3 });
 async function optimize() {
@@ -85,6 +86,21 @@ async function optimize() {
       duration += 600;
     }
     if (!stops.length) continue;
+    // Persist actual truck-road geometry before committing an assignment.
+    const road = await location.send(new CalculateRouteCommand({
+      CalculatorName: c.env("ROUTE_CALCULATOR_NAME"),
+      DeparturePosition: [tanker.currentCoordinates.lng, tanker.currentCoordinates.lat],
+      DestinationPosition: [stops.at(-1).coordinates.lng, stops.at(-1).coordinates.lat],
+      ...(stops.length > 1 ? { WaypointPositions: stops.slice(0, -1).map(s => [s.coordinates.lng, s.coordinates.lat]) } : {}),
+      TravelMode: "Truck", OptimizeFor: "FastestRoute", DistanceUnit: "Kilometers",
+      IncludeLegGeometry: true, DepartNow: true,
+    }));
+    c.check(road.Legs?.length === stops.length, "Road geometry is unavailable; no dispatch was committed", 503);
+    stops.forEach((stop, i) => {
+      const coordinates = road.Legs[i].Geometry?.LineString;
+      c.check(Array.isArray(coordinates) && coordinates.length >= 2 && coordinates.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite)), "Routing provider returned invalid road geometry", 503);
+      stop.roadGeometry = coordinates;
+    });
     const TransactItems = selected.map((r, i) => ({
       Update: {
         TableName: c.env("TABLE_NAME"),

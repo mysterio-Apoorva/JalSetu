@@ -4,7 +4,7 @@ export function TiltedGridHero() {
   const cards = [
     {
       title: "Community Standposts",
-      subtitle: "Sangam Vihar & Seelampur",
+      subtitle: "Verified Collection Points",
       bgGradient: "from-blue-600 via-sky-500 to-cyan-400",
       icon: "💧",
       transform: "rotateY(25deg) translateZ(-40px)",
@@ -28,15 +28,15 @@ export function TiltedGridHero() {
     },
     {
       title: "Bedrock Nova Lite Triage",
-      subtitle: "Hindi Voice Distress Call Analysis",
+      subtitle: "Written Complaint Analysis",
       bgGradient: "from-emerald-600 via-teal-500 to-cyan-500",
       icon: "🧠",
       transform: "rotateY(-12deg) translateZ(-15px)",
       opacity: "opacity-95",
     },
     {
-      title: "Immutable Public Ledger",
-      subtitle: "Zero-Knowledge Delivery Audits",
+      title: "Public Delivery Ledger",
+      subtitle: "Recorded Delivery Evidence",
       bgGradient: "from-slate-800 via-slate-700 to-slate-900",
       icon: "🏛️",
       transform: "rotateY(-25deg) translateZ(-40px)",
@@ -63,7 +63,7 @@ export function TiltedGridHero() {
           {cards.map((card, idx) => (
             <div
               key={idx}
-              className={`relative flex-shrink-0 w-36 sm:w-56 h-48 sm:h-72 rounded-2xl p-4 sm:p-5 flex flex-col justify-between text-left text-white shadow-xl transition-all duration-500 hover:scale-105 cursor-pointer bg-gradient-to-br ${card.bgGradient} ${card.opacity}`}
+              className={`relative flex-shrink-0 w-36 sm:w-56 h-48 sm:h-72 rounded-2xl p-4 sm:p-5 flex flex-col justify-between text-left text-white shadow-xl transition-all duration-500 hover:scale-105 bg-gradient-to-br ${card.bgGradient} ${card.opacity}`}
               style={{
                 transform: card.transform,
                 transformStyle: "preserve-3d",

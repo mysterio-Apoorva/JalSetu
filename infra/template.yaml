@@ -944,7 +944,8 @@
               {
                 "Effect": "Allow",
                 "Action": [
-                  "geo:CalculateRouteMatrix"
+                  "geo:CalculateRouteMatrix",
+                  "geo:CalculateRoute"
                 ],
                 "Resource": {
                   "Fn::GetAtt": [

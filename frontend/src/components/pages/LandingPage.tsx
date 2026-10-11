@@ -5,7 +5,7 @@ import { GateOpening3D } from "../ui/GateOpening3D";
 import { CommunityArchHero } from "../ui/CommunityArchHero";
 import { TiltedGridHero } from "../ui/TiltedGridHero";
 import { ProductTimeline } from "../ui/ProductTimeline";
-import { CanvasCrowd, type CrowdResident } from "../ui/CanvasCrowd";
+import { type CrowdResident } from "../ui/CanvasCrowd";
 import { ContributionSkyline3D } from "../ui/ContributionSkyline3D";
 import { ShinyButton } from "../ui/ShinyButton";
 import type { StakeholderRole } from "../../types";
@@ -16,12 +16,7 @@ interface LandingPageProps {
   onOpenAuth?: (tab?: "signin" | "signup") => void;
 }
 
-export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth }: LandingPageProps) {
-  const handleResidentSelect = (resident: CrowdResident) => {
-    onSelectResidentForRequest?.(resident);
-    onNavigate("CITIZEN");
-  };
-
+export function LandingPage({ onNavigate, onOpenAuth }: LandingPageProps) {
   return (
     <div className="w-full space-y-16 pb-20">
       {/* ─────────────────────────────────────────────────────────────
@@ -38,14 +33,14 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
         />
 
         {/* Action banner at bottom of hero */}
-        <div className="absolute bottom-6 inset-x-4 md:inset-x-12 z-20 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl">
+        <div className="relative mx-4 mb-6 md:mx-12 -mt-20 z-20 flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-slate-950/80 backdrop-blur-xl border border-white/10 text-white shadow-2xl">
           <div className="flex items-center gap-3">
             <span className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <Droplets size={20} />
             </span>
             <div>
-              <strong className="text-sm block">JalSetu: Delhi Municipal Water Grid</strong>
-              <span className="text-xs text-slate-400">Verifiable, anti-cartel serverless water logistics</span>
+              <strong className="text-sm block">JalSetu: Delhi Water Access</strong>
+              <span className="text-xs text-slate-400">Household needs, road routes, and recorded deliveries</span>
             </div>
           </div>
 
@@ -115,11 +110,14 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
             Every Voice in Delhi Accounted For
           </h2>
           <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            From Sangam Vihar to Seelampur, resident grievances are triaged by Amazon Bedrock AI and secured with single-use OTPs. Tap any neighbor in the crowd below to test automated relief pre-fill:
+            Report your own household needs and select your location. Your report stays separate from physical delivery records.
           </p>
         </div>
 
-        <CanvasCrowd onSelectResident={handleResidentSelect} />
+        <div className="rounded-3xl bg-slate-950 p-8 text-white flex flex-wrap items-center justify-between gap-6">
+          <div><Droplets className="text-sky-400 mb-3" size={36} /><strong className="text-xl">Your household. Your report.</strong><p className="text-slate-300 mt-2">Choose a location, review local conditions, and describe the water you need.</p></div>
+          <button className="primary-action" onClick={() => onNavigate("CITIZEN")}>Report water needs <ArrowRight size={16} /></button>
+        </div>
       </section>
 
       {/* ─────────────────────────────────────────────────────────────
@@ -128,13 +126,13 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
       <section className="w-full">
         <div className="mb-4">
           <span className="text-xs font-mono font-bold tracking-widest text-emerald-700 uppercase">
-            MUNICIPAL VOLUMETRIC ACTIVITY · 365 DAYS
+            RECORDED DELIVERY ACTIVITY · 52 WEEKS
           </span>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1 font-sans">
             3D Verified Water Supply Skyline
           </h2>
           <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            Orbit the true 3D isometric extruded grid below to inspect deliveries, summer crisis spikes, and uninterrupted community water streaks:
+            Explore the public delivery history in the 3D grid. Activity appears when verified delivery records are available.
           </p>
         </div>
 
@@ -159,15 +157,15 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
             Choose Your Operational Workspace
           </h2>
           <p className="text-sm text-slate-400 mt-2">
-            Each role operates with isolated permissions, cryptographic audit guarantees, and real-time AWS event synchronization.
+            Each role operates with isolated permissions, recorded audit evidence, and real-time AWS event synchronization.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
           {/* Card 1: 3D Architecture Machine */}
-          <div
+          <button type="button"
             onClick={() => onNavigate("AWS_ARCHITECTURE")}
-            className="p-6 rounded-2xl bg-slate-950/80 border border-orange-500/40 hover:border-orange-400 transition-all cursor-pointer group shadow-xl hover:-translate-y-1"
+            className="p-6 rounded-2xl bg-slate-950/80 border border-orange-500/40 hover:border-orange-400 transition-all cursor-pointer group shadow-xl hover:-translate-y-1 text-left"
           >
             <div className="p-3 w-fit rounded-xl bg-orange-500/20 text-orange-400 border border-orange-500/30 mb-4">
               <Cpu size={24} />
@@ -182,12 +180,12 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
               <span>Inspect 3D Machine</span>
               <ArrowRight size={14} />
             </span>
-          </div>
+          </button>
 
           {/* Card 2: Command Center */}
-          <div
+          <button type="button"
             onClick={() => onNavigate("DISPATCHER")}
-            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1"
+            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-emerald-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1 text-left"
           >
             <div className="p-3 w-fit rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 mb-4">
               <MapPin size={24} />
@@ -202,12 +200,12 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
               <span>Open Radar Map</span>
               <ArrowRight size={14} />
             </span>
-          </div>
+          </button>
 
           {/* Card 3: Citizen Portal */}
-          <div
+          <button type="button"
             onClick={() => onNavigate("CITIZEN")}
-            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-sky-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1"
+            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-sky-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1 text-left"
           >
             <div className="p-3 w-fit rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 mb-4">
               <Droplets size={24} />
@@ -216,18 +214,18 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
               Citizen & RWA Portal
             </strong>
             <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              Hindi voice note intake, Bedrock urgency classification, and dynamic 6-digit OTP confirmation.
+              Report household needs, plan a road route, and confirm a simulated trip by email where available.
             </p>
             <span className="inline-flex items-center gap-1.5 text-xs text-sky-400 font-bold mt-4">
               <span>Request Water</span>
               <ArrowRight size={14} />
             </span>
-          </div>
+          </button>
 
           {/* Card 4: Driver Workspace */}
-          <div
+          <button type="button"
             onClick={() => onNavigate("DRIVER")}
-            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-purple-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1"
+            className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-purple-500/50 transition-all cursor-pointer group shadow-xl hover:-translate-y-1 text-left"
           >
             <div className="p-3 w-fit rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 mb-4">
               <Truck size={24} />
@@ -242,14 +240,14 @@ export function LandingPage({ onNavigate, onSelectResidentForRequest, onOpenAuth
               <span>Start Run</span>
               <ArrowRight size={14} />
             </span>
-          </div>
+          </button>
         </div>
 
         {/* Global CTA button with ShinyButton styling */}
         <div className="mt-12 flex flex-col sm:flex-row items-center justify-between gap-6 pt-8 border-t border-slate-800/80">
           <div className="flex items-center gap-3 text-xs text-slate-400 font-mono">
             <ShieldCheck size={16} className="text-emerald-400" />
-            <span>PROTECTED BY AMAZON COGNITO RBAC & CEDAR POLICIES</span>
+            <span>ACCOUNT ACCESS SECURED BY AMAZON COGNITO</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <ShinyButton onClick={() => (onOpenAuth ? onOpenAuth("signup") : onNavigate("DISPATCHER"))}>

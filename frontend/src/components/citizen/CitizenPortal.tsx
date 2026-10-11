@@ -107,7 +107,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
     e.preventDefault();
     setIsSubmitting(true);
 
-    const classification = import.meta.env.PROD ? undefined : (aiAnalysisResult ||
+    const classification = LIVE_MODE ? undefined : (aiAnalysisResult ||
       classifyWaterComplaint(complaintText, daysWithoutWater, vulnerableCount));
     const wardObj = wards.find((w) => w.id === selectedWardId) || wards[0] || {
       id: "WARD-01",
@@ -171,7 +171,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
       </div>
 
       {/* Interactive Delhi Community Crowd Canvas */}
-      <CitizenCrowdCanvas onSelectPersona={handleSelectPersona} className="w-full shadow-md" />
+      {import.meta.env.DEV && !LIVE_MODE && <CitizenCrowdCanvas onSelectPersona={handleSelectPersona} className="w-full shadow-md" />}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left 7 Cols: File a Water Request Form */}
