@@ -83,7 +83,7 @@ test("self-registration verifies email, limits resends, and signs in", async ({
   await page.getByLabel("Password", { exact: true }).fill("MyOwnPassword123!");
   await page.getByRole("button", { name: "Sign in to workspace" }).click();
   await expect(
-    page.getByRole("button", { name: "Switch Role / Sign Out" }),
+    page.getByRole("button", { name: "Sign out" }),
   ).toBeVisible();
   expect(operations).toEqual(["SignUp", "ConfirmSignUp", "InitiateAuth"]);
 });
@@ -136,7 +136,7 @@ test("invited user completes the Cognito new-password challenge", async ({
     .fill("StrongerPassword123!");
   await page.getByRole("button", { name: "Complete verification" }).click();
   await expect(
-    page.getByRole("button", { name: "Switch Role / Sign Out" }),
+    page.getByRole("button", { name: "Sign out" }),
   ).toBeVisible();
 });
 test("password recovery calls Cognito and returns to sign in", async ({
@@ -196,7 +196,7 @@ test("four personas stay isolated across tabs, restore, and sign out independent
       return page;
     }),
   );
-  await tabs[0].getByRole("button", { name: "Switch Role / Sign Out" }).click();
+  await tabs[0].getByRole("button", { name: "Sign out" }).click();
   await expect(tabs[0].getByLabel("Email address")).toBeVisible();
   expect(await tabs[0].evaluate(() => sessionStorage.length)).toBe(0);
   for (let i = 1; i < tabs.length; i++)
@@ -315,7 +315,7 @@ test("a delayed refresh cannot resurrect a signed-out session", async ({
   await expect(page.locator(".auth-profile-email")).toBeVisible();
   await page.clock.fastForward(2000);
   await expect.poll(() => started).toBe(true);
-  await page.getByRole("button", { name: "Switch Role / Sign Out" }).click();
+  await page.getByRole("button", { name: "Sign out" }).click();
   release();
   await expect(page.getByLabel("Email address")).toBeVisible();
   await page.reload();

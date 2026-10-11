@@ -336,7 +336,7 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
                 >
                   {/* Floating Cyber Card matching user screenshot */}
                   <div
-                    className={`rounded-2xl p-3 border transition-all duration-300 w-[170px] ${
+                    className={`rounded-2xl p-3 border transition-all duration-300 w-[142px] ${
                       isSelected
                         ? "bg-slate-900/95 border-orange-500 text-white shadow-2xl scale-105"
                         : "bg-[#0b1019]/90 border-slate-800 text-slate-300 hover:border-slate-600 hover:scale-102"
@@ -435,6 +435,13 @@ export function MachineArchitecture3D({ className }: { className?: string }) {
           </button>
         </div>
       </div>
+
+      <nav className="architecture-station-list" aria-label="Architecture steps">
+        {STATIONS.map(station => <button key={station.id} aria-pressed={selectedStation.id === station.id}
+          onClick={() => { setSelectedStation(station); setIsSimulating(false); }}>
+          <span>Step {station.stepNum}</span>{station.role}
+        </button>)}
+      </nav>
 
       {/* Selected Station Deep-Dive Drawer */}
       <div className="mt-6 rounded-2xl bg-[#090e18] border border-orange-900/40 p-6 md:p-8">

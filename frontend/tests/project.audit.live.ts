@@ -118,7 +118,7 @@ test('audit live dashboards, controls, data provenance and role boundaries', asy
     writeFileSync('../.runtime/project-audit-browser.json', JSON.stringify(report, null, 2));
     console.log(JSON.stringify(report, null, 2));
     for (const page of pages) {
-      const button = page.getByRole('button', { name: 'Switch Role / Sign Out' });
+      const button = page.getByRole('button', { name: 'Sign out' });
       if (await button.count()) {
         const revoked = page.waitForResponse(response => response.request().headers()['x-amz-target']?.endsWith('.RevokeToken')).catch(() => null);
         await button.click(); await revoked;

@@ -38,7 +38,7 @@ export default function OperationsApp() {
   }, []);
   if (!session && location.pathname === "/public") {
     return (
-      <main className="p-4">
+      <main className="dashboard-content max-w-7xl mx-auto p-4">
         <a href="/" className="secondary-action inline-flex mb-4">Staff / resident sign in</a>
         <PublicTransparencyBoard wards={[]} requests={[]} anomalies={[]} />
       </main>
@@ -68,7 +68,7 @@ export default function OperationsApp() {
                 <Droplets size={25} />
               </span>
               <span>
-                jal<span className="brand-dash">—</span>setu
+                jalSetu
                 <small>THE WATER CONNECTION</small>
               </span>
             </a>
@@ -111,7 +111,7 @@ export default function OperationsApp() {
           />}
         </main>
         <footer className="site-footer">
-          <span className="footer-brand">jal—setu <span>जल–सेतु</span></span>
+          <span className="footer-brand">jalSetu <span>जल–सेतु</span></span>
           <span>Connecting communities to accountable water supply.</span>
           <span>Built with AWS · Designed for Delhi</span>
         </footer>
@@ -162,16 +162,17 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
       activeAlertCount={anomalies.filter(a => a.status === "ACTIVE_ALARM").length} totalVerifiedLiters={requests.reduce((n, r) => n + (r.litersDelivered || 0), 0)} />
     <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
       {(role === "DISPATCHER" || notice || !connected) && <section className="connection-panel glossy-panel rounded-2xl p-5">
-        <strong>AWS workspace</strong><p className="text-xs text-slate-500 mt-1">{notice || (connected ? "Signed in securely. Data refreshes every 15 seconds." : "Connecting to your authorized AWS workspace…")}</p>
+        <strong>Dispatch control</strong><p className="text-xs text-slate-500 mt-1">{notice || (connected ? "Signed in securely. Data refreshes every 15 seconds." : "Connecting to your authorized AWS workspace…")}</p>
         {connected && role === "DISPATCHER" && <button disabled={busy} className="secondary-action mt-3" onClick={async () => {
           setBusy(true); try { await api("/optimize", {}); await refresh(); } catch (e) { setError((e as Error).message); } finally { setBusy(false); }
         }}>Dispatch pending requests</button>}
       </section>}
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
       {limited && <p className="rounded-xl bg-amber-50 p-4 text-sm">Showing your latest 100 requests. Contact operations for older records.</p>}
-      <div className="workspace" id="workspace">
+      <div className={["DISPATCHER", "CITIZEN", "DRIVER", "PUBLIC_BOARD"].includes(role) ? "workspace dashboard-content" : "workspace"} id="workspace">
+        {["DISPATCHER", "CITIZEN", "DRIVER", "PUBLIC_BOARD"].includes(role) && <div className="workspace-heading"><div><span className="eyebrow">YOUR WATER NETWORK</span><h1>{role === "DISPATCHER" ? "Command center" : role === "CITIZEN" ? "Your household, connected." : role === "DRIVER" ? "Your delivery workspace" : "Delivery records & accountability"}</h1><p>{role === "DISPATCHER" ? "Coordinate requests, track your fleet, and keep deliveries moving." : role === "CITIZEN" ? "Tell us what you need, choose your location, and follow your requests." : role === "DRIVER" ? "Review assigned stops and document each delivery." : "Review verified water deliveries and investigate reported alerts."}</p></div></div>}
         {connected && role === "CITIZEN" && <PilotNeeds canReport={session.roles.includes("Citizen")} />}
-        <div className="workspace-heading"><div><span className="eyebrow">THE OPERATIONS DESK</span><h2>Water moves. Trust follows.</h2></div><span className="workspace-note">One network. Every stakeholder.</span></div>
+
         {role === "DISPATCHER" && connected && <>
           <DispatcherDashboard wards={wards} depots={depots} fleet={fleet} requests={requests} anomalies={anomalies} isOptimizedMode onToggleOptimization={() => {}} selectedTanker={selected} onSelectTanker={setSelected} onDismissAnomaly={async id => {
             const reason = window.prompt("Record your investigation and reason for resolving this alert:"); if (!reason?.trim()) return;
@@ -194,11 +195,11 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
         {role === "AWS_ARCHITECTURE" && <DedicatedMachinePage />}
         {role === "LANDING" && <LandingPage onNavigate={changeRole} />}
         {role === "HEATMAP" && <DedicatedSkylinePage />}
-        {!connected && !["AWS_ARCHITECTURE", "PUBLIC_BOARD", "LANDING", "HEATMAP"].includes(role) && <p className="glossy-panel p-10 rounded-2xl">Waiting for your authorized AWS workspace. Connection retries automatically.</p>}
-        {connected && role === "CITIZEN" && !wards.length && <p className="glossy-panel p-10 rounded-2xl">No verified service areas are available yet. Water requests open after the operator supplies verified collection points.</p>}
-        {connected && role === "DRIVER" && !tanker && <p className="glossy-panel p-10 rounded-2xl">No tanker is assigned to this account.</p>}
+        {!connected && !["AWS_ARCHITECTURE", "PUBLIC_BOARD", "LANDING", "HEATMAP"].includes(role) && <p className="empty-state">Waiting for your authorized AWS workspace. Connection retries automatically.</p>}
+        {connected && role === "CITIZEN" && !wards.length && <p className="empty-state">No verified service areas are available yet. Water requests open after the operator supplies verified collection points.</p>}
+        {connected && role === "DRIVER" && !tanker && <p className="empty-state">No tanker is assigned to this account.</p>}
       </div>
     </main>
-    <footer className="site-footer"><span className="footer-brand">jal—setu <span>जल–सेतु</span></span><span>Connecting communities to accountable water supply.</span><span>Built with AWS · Designed for Delhi</span></footer>
+    <footer className="site-footer"><span className="footer-brand">jalSetu <span>जल–सेतु</span></span><span>Connecting communities to accountable water supply.</span><span>Built with AWS · Designed for Delhi</span></footer>
   </div>;
 }

@@ -664,7 +664,7 @@ const Workspace = ({
 
       <footer className="site-footer">
         <span className="footer-brand">
-          jal—setu <span>जल–सेतु</span>
+          jalSetu <span>जल–सेतु</span>
         </span>
         <span>Connecting communities to accountable water supply.</span>
         <span>Built with AWS · Designed for Delhi</span>

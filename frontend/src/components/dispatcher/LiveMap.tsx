@@ -18,7 +18,6 @@ import {
   Truck,
   Radio,
   Navigation2,
-  Compass,
   Droplets,
 } from "lucide-react";
 
@@ -80,7 +79,6 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   onSwitchTo3D,
 }) => {
   const delhiCenter: [number, number] = [28.6139, 77.209];
-  const [mapStyle, setMapStyle] = useState<"voyager" | "standard">("voyager");
   const [showGeofences, setShowGeofences] = useState(true);
 
   // Calculate route lines with high-visibility styling
@@ -114,9 +112,9 @@ export const LiveMap: React.FC<LiveMapProps> = ({
   );
 
   return (
-    <div className="relative isolate w-full h-[580px] rounded-3xl overflow-hidden border border-slate-300/80 shadow-2xl bg-slate-900 font-sans">
+    <div className="fleet-map-shell relative isolate w-full rounded-2xl overflow-hidden border border-slate-300/80 shadow-sm bg-white font-sans">
       {/* Top Left: Glassmorphism Tactical HUD */}
-      <div className="absolute top-3 left-3 right-3 sm:right-auto z-[1000] pointer-events-none flex flex-wrap items-center gap-2.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl text-xs">
+      <div className="fleet-map-summary flex flex-wrap items-center gap-3 bg-slate-900 text-white px-4 py-4 text-xs">
         <div className="flex items-center gap-2">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -138,7 +136,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
         </div>
         <span className="text-slate-600">|</span>
         <span
-          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+          className={`px-2 py-0.5 rounded-full text-xs font-bold ${
             isOptimizedMode
               ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40"
               : "bg-amber-500/20 text-amber-300 border border-amber-500/40"
@@ -149,15 +147,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       </div>
 
       {/* Top Right: Layer & 3D Controls */}
-      <div className="absolute top-28 sm:top-20 right-3 z-[1000] flex-wrap max-w-[90%] flex items-center gap-2">
-        <button
-          onClick={() => setMapStyle(mapStyle === "voyager" ? "standard" : "voyager")}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900/90 hover:bg-slate-800 text-white border border-slate-700/80 shadow-xl text-xs font-bold transition backdrop-blur-md"
-        >
-          <Compass size={13} className="text-cyan-400" />
-          <span>{mapStyle === "voyager" ? "HD Voyager" : "Standard OSM"}</span>
-        </button>
-
+      <div className="fleet-map-controls flex flex-wrap items-center gap-2 p-3 border-b border-slate-200">
         <button
           onClick={() => setShowGeofences(!showGeofences)}
           className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border shadow-xl text-xs font-bold transition backdrop-blur-md ${
@@ -182,7 +172,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       </div>
 
       {/* Bottom Right: Architectural Map Legend */}
-      <div className="absolute bottom-4 right-4 z-[1000] hidden md:flex items-center gap-3.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl text-[11px] font-medium">
+      <div className="hidden md:flex flex-wrap items-center gap-3.5 bg-slate-50 text-slate-700 px-4 py-3 text-xs font-medium">
         <div className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
           <span>Registered Depot</span>
@@ -203,33 +193,33 @@ export const LiveMap: React.FC<LiveMapProps> = ({
 
       {/* Bottom Left: Selected Tanker Quick HUD Inspector */}
       {selectedTanker && (
-        <div className="absolute bottom-4 left-4 z-[1000] bg-slate-900/95 text-white backdrop-blur-md p-3.5 rounded-2xl border border-emerald-500/50 shadow-2xl text-xs max-w-sm hidden sm:block">
+        <div className="bg-slate-900 text-white p-4 text-xs">
           <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-2">
             <span className="font-bold text-sm text-emerald-400 flex items-center gap-1.5">
               <Navigation2 size={13} className="text-emerald-400" />
               {selectedTanker.vehicleNumber}
             </span>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold">
+            <span className="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold">
               {selectedTanker.status.replace("_", " ")}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-2 pt-2 text-[11px] text-slate-300 font-mono">
+          <div className="grid grid-cols-2 gap-2 pt-2 text-xs text-slate-300 font-mono">
             <div>
-              <span className="text-slate-500 block text-[9px]">Driver</span>
+              <span className="text-slate-500 block text-xs">Driver</span>
               <strong>{selectedTanker.driverName}</strong>
             </div>
             <div>
-              <span className="text-slate-500 block text-[9px]">Speed</span>
+              <span className="text-slate-500 block text-xs">Speed</span>
               <strong>{selectedTanker.speedKmph} km/h</strong>
             </div>
             <div>
-              <span className="text-slate-500 block text-[9px]">Water Volume</span>
+              <span className="text-slate-500 block text-xs">Water Volume</span>
               <strong className="text-cyan-400">
                 {selectedTanker.currentWaterLevelLiters.toLocaleString()} L
               </strong>
             </div>
             <div>
-              <span className="text-slate-500 block text-[9px]">Assigned Stops</span>
+              <span className="text-slate-500 block text-xs">Assigned Stops</span>
               <strong>{selectedTanker.assignedRoute?.length || 0} stops</strong>
             </div>
           </div>
@@ -237,16 +227,16 @@ export const LiveMap: React.FC<LiveMapProps> = ({
       )}
 
       {fleet.some(t => t.assignedRoute.some(stop => !stop.isCompleted && !stop.roadGeometry?.length)) &&
-        <p className="absolute bottom-20 left-3 right-3 z-[1000] rounded bg-white/95 p-2 text-xs text-slate-800">Road geometry is unavailable for some assigned stops. Their routes are not drawn.</p>}
+        <p className="border-b border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Road geometry is unavailable for some assigned stops. Their routes are not drawn.</p>}
       {/* Map Container */}
       <MapContainer
         center={delhiCenter}
         zoom={11}
         scrollWheelZoom={true}
-        style={{ width: "100%", height: "100%" }}
+        style={{ width: "100%", height: "440px" }}
       >
         {/* Standard High-Performance OpenStreetMap Tiles (No API key required) */}
-        <MapTiles key={mapStyle} style={mapStyle} />
+        <MapTiles />
         <MapResizer /><SelectedTankerView tanker={selectedTanker} />
 
         {/* Only provider road geometry is rendered; missing data is never a straight-line route. */}
@@ -329,22 +319,22 @@ export const LiveMap: React.FC<LiveMapProps> = ({
                     <div className="font-bold text-slate-900 flex items-center justify-between">
                       <span>{ward.name}</span>
                       <span
-                        className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase"
+                        className="px-1.5 py-0.2 rounded text-xs font-bold uppercase"
                         style={{ backgroundColor: `${color}18`, color: color }}
                       >
                         {ward.deficitSeverity}
                       </span>
                     </div>
                     <div className="text-slate-600">Zone: {ward.zone}</div>
-                    <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px]">
+                    <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-xs">
                       <div className="bg-slate-50 p-1.5 rounded border border-slate-200">
-                        <span className="text-slate-500 block text-[9px]">
+                        <span className="text-slate-500 block text-xs">
                           Dry Days
                         </span>
                         <strong className="text-amber-700">Not reported</strong>
                       </div>
                       <div className="bg-slate-50 p-1.5 rounded border border-slate-200">
-                        <span className="text-slate-500 block text-[9px]">
+                        <span className="text-slate-500 block text-xs">
                           Active Reqs
                         </span>
                         <strong className="text-slate-900">
@@ -352,7 +342,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
                         </strong>
                       </div>
                     </div>
-                    <div className="text-slate-600 text-[10px] pt-1">
+                    <div className="text-slate-600 text-xs pt-1">
                       Groundwater Depletion:{" "}
                       <strong className="text-rose-600">
                         {ward.groundwaterDepletionScore == null
@@ -389,7 +379,7 @@ export const LiveMap: React.FC<LiveMapProps> = ({
                       {tanker.vehicleNumber}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                      className={`px-2 py-0.5 rounded-full text-xs font-bold ${
                         isAnomaly
                           ? "bg-rose-100 text-rose-800 border border-rose-300"
                           : "bg-emerald-100 text-emerald-800 border border-emerald-300"
@@ -421,14 +411,14 @@ export const LiveMap: React.FC<LiveMapProps> = ({
                   </div>
 
                   {tanker.anomalyWarning && (
-                    <div className="p-2 rounded bg-rose-50 border border-rose-300 text-rose-800 text-[10px] font-medium">
+                    <div className="p-2 rounded bg-rose-50 border border-rose-300 text-rose-800 text-xs font-medium">
                       ⚠️ <strong>Anomaly Flag:</strong> {tanker.anomalyWarning}
                     </div>
                   )}
 
                   <button
                     onClick={() => onSelectTanker(tanker)}
-                    className="w-full mt-1 py-1.5 px-2 rounded btn-terracotta font-bold text-[11px] transition"
+                    className="w-full mt-1 py-1.5 px-2 rounded btn-terracotta font-bold text-xs transition"
                   >
                     Inspect Tanker Telemetry
                   </button>

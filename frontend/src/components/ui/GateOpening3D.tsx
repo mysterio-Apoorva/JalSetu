@@ -25,7 +25,7 @@ export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
   };
 
   return (
-    <div ref={ref} data-testid="automatic-gate" data-open={isOpen} className="relative w-full overflow-hidden py-16 px-4 flex flex-col items-center justify-center text-center bg-[#05070c] rounded-3xl border border-orange-950/50 shadow-2xl my-8">
+    <div ref={ref} data-testid="automatic-gate" data-open={isOpen} className="relative w-full overflow-hidden py-8 sm:py-10 px-4 flex flex-col items-center justify-center text-center bg-[#05070c] rounded-3xl border border-orange-950/50 shadow-2xl">
       {/* Background Ambient Mist & Light */}
       <div className="absolute inset-0 bg-radial from-orange-950/20 via-[#070b14] to-[#04060a] pointer-events-none" />
 
@@ -77,7 +77,7 @@ export function GateOpening3D({ onEnterProject }: GateOpeningProps) {
             <span className={`w-2 h-2 rounded-full ${isOpen ? "bg-emerald-500 animate-ping" : "bg-orange-500"}`} />
             <span>{isOpen ? "GATE OPEN" : "GATE CLOSED"} · ILLUSTRATION</span>
           </div>
-          <div className="text-[10px] font-mono text-slate-500">SECTOR-09 / DELHI REGION</div>
+          <div className="text-[10px] font-mono text-slate-500">DELHI WATER NETWORK</div>
         </div>
 
         {/* 3D Gate Doors Container (Split 50% left / 50% right) */}

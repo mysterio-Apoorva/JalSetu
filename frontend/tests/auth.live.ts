@@ -66,7 +66,7 @@ test("live four-tab Cognito login, mobile and 4K layout, restoration and logout"
         response.url().includes("cognito-idp") &&
         response.request().headers()["x-amz-target"]?.endsWith(".RevokeToken"),
     );
-    await page.getByRole("button", { name: "Switch Role / Sign Out" }).click();
+    await page.getByRole("button", { name: "Sign out" }).click();
     expect((await revocation).ok()).toBe(true);
     await expect(page.getByLabel("Email address")).toBeVisible();
   }

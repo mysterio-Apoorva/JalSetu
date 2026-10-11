@@ -102,7 +102,7 @@ export function AuthModal({
         {/* ─────────────────────────────────────────────────────────────
             LEFT COLUMN: BENTO GRID MOSAIC (Ref: Image 5)
         ───────────────────────────────────────────────────────────── */}
-        <section className="auth-bento-section" aria-label="JAL-SETU water network">
+        <section className="auth-bento-section" aria-label="jalSetu water network">
           <div className="auth-bento-grid">
             <div className="bento-card bento-stat-card bento-orange">
               <div className="stat-number">GPS</div>
@@ -178,16 +178,16 @@ export function AuthModal({
             <h2 id="login-title" className="auth-title">
               {register ? (
                 <>
-                  Create an account on <span className="brand-accent">Jal-Setu</span>
+                  Create an account on <span className="brand-accent">jalSetu</span>
                 </>
               ) : (
                 <>
-                  Sign in to <span className="brand-accent">Jal-Setu</span>
+                  Sign in to <span className="brand-accent">jalSetu</span>
                 </>
               )}
             </h2>
             <p className="auth-subtitle">
-              Welcome to Jal-Setu, please enter your login details below to access the water network.
+              Welcome to jalSetu, please enter your login details below to access the water network.
             </p>
           </div>
 

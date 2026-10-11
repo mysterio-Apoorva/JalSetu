@@ -49,7 +49,7 @@ export function Navbar({
             <Droplets size={25} />
           </span>
           <span>
-            jal<span className="brand-dash">—</span>setu
+            jalSetu
             <small>THE WATER CONNECTION</small>
           </span>
         </a>
@@ -73,34 +73,6 @@ export function Navbar({
               {LIVE_MODE ? "AWS mode" : "Interactive demo"}
             </span>
           )}
-          {LIVE_MODE && (
-            <div className="hidden md:flex items-center gap-1.5">
-              <button
-                type="button"
-                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
-                onClick={() => onSelectRole("AWS_ARCHITECTURE")}
-                title="View 3D Cybernetic Machine Architecture"
-              >
-                3D Machine
-              </button>
-              <button
-                type="button"
-                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
-                onClick={() => onSelectRole("HEATMAP")}
-                title="View 3D Contribution Skyline"
-              >
-                3D Skyline
-              </button>
-              <button
-                type="button"
-                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
-                onClick={() => onSelectRole("LANDING")}
-                title="View Story & Cinematic Video Hero"
-              >
-                Story & Intro
-              </button>
-            </div>
-          )}
           {session && (
             <div className="auth-profile">
               <span
@@ -119,7 +91,7 @@ export function Navbar({
                   {connected ? "✓ ● Live AWS Connected" : "● Connecting to AWS"}
                 </span>
               </div>
-              <button onClick={onSignOut}>Switch Role / Sign Out</button>
+              <button onClick={onSignOut}>Sign out</button>
             </div>
           )}
           {!LIVE_MODE && (

@@ -409,7 +409,7 @@
   }
 }
 
-.secondary-action {
+.auth-screen .secondary-action {
   font-size: 13px;
   color: #2563eb;
   font-weight: 600;
@@ -425,7 +425,7 @@
   box-sizing: border-box;
 }
 
-.secondary-action:hover {
+.auth-screen .secondary-action:hover {
   text-decoration: underline;
 }
 

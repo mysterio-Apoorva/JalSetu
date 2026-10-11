@@ -140,6 +140,13 @@ export function ContributionSkyline3D({ className, onSelectDay, deliveries: supp
 
   const monthLabels = weeks.filter((week, i) => i === 0 || week[0].month !== weeks[i - 1][0].month).map(week => week[0].month);
 
+  if (!loading && !error && stats.total === 0) {
+    return <div className={`skyline-empty ${className || ""}`} role="status">
+      <Box size={30} /><div><h2>The delivery story starts here.</h2>
+      <p>No verified deliveries are recorded in this period. Once deliveries are verified, this space will show their dates, volumes, and activity across the year.</p></div>
+    </div>;
+  }
+
   return (
     <div
       className={`w-full rounded-3xl bg-[#090d16] border border-slate-800 text-slate-100 p-6 md:p-8 shadow-2xl relative overflow-hidden font-sans select-none ${
@@ -324,7 +331,7 @@ export function ContributionSkyline3D({ className, onSelectDay, deliveries: supp
                           height: "10px",
                           transformStyle: "preserve-3d",
                         }}
-                        role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
+                        data-skyline-day="" role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
                         onFocus={() => setHoveredDay(day)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setHoveredDay(day); onSelectDay?.(day); } }}
                         onMouseEnter={() => setHoveredDay(day)}
                         onClick={() => { setHoveredDay(day); onSelectDay?.(day); }}
@@ -419,7 +426,7 @@ export function ContributionSkyline3D({ className, onSelectDay, deliveries: supp
                         className={`w-3 h-3 rounded-xs cursor-pointer transition-transform ${
                           colors.flat
                         } ${isHovered ? "ring-2 ring-emerald-300 scale-125 z-10" : "hover:scale-115"}`}
-                        role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
+                        data-skyline-day="" role="button" tabIndex={0} aria-label={`${day.date}: ${day.count} deliveries, ${day.liters} litres`}
                         onFocus={() => setHoveredDay(day)} onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setHoveredDay(day); onSelectDay?.(day); } }}
                         onMouseEnter={() => setHoveredDay(day)}
                         onClick={() => { setHoveredDay(day); onSelectDay?.(day); }}

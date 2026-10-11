@@ -171,11 +171,11 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
           <div>
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
               Amazon Bedrock Copilot
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">
+              <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono font-bold">
                 {LIVE_MODE ? "Bedrock" : "Demo responses"}
               </span>
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs text-slate-500">
               Multilingual fleet intelligence & urgent triage
             </p>
           </div>
@@ -216,19 +216,19 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
 
               {/* Tool Execution Box */}
               {msg.toolCall && (
-                <div className="mt-2 p-2 rounded-lg bg-slate-900 font-mono text-[10px] text-emerald-300">
+                <div className="mt-2 p-2 rounded-lg bg-slate-900 font-mono text-xs text-emerald-300">
                   <div className="flex items-center gap-1.5 text-emerald-300 font-bold mb-1">
                     <Terminal className="w-3 h-3" />
                     <span>Tool Action: {msg.toolCall.name}</span>
                   </div>
-                  <pre className="text-slate-300 overflow-x-auto text-[9px]">
+                  <pre className="text-slate-300 overflow-x-auto text-xs">
                     {JSON.stringify(msg.toolCall.output, null, 2)}
                   </pre>
                 </div>
               )}
 
               <div
-                className={`text-[9px] text-right font-mono ${msg.sender === "user" ? "text-orange-200" : "text-slate-400"}`}
+                className={`text-xs text-right font-mono ${msg.sender === "user" ? "text-orange-200" : "text-slate-400"}`}
               >
                 {msg.timestamp}
               </div>
@@ -256,7 +256,7 @@ export const BedrockCopilotDrawer: React.FC<BedrockCopilotDrawerProps> = ({
           <button
             key={idx}
             onClick={() => handleSend(prompt)}
-            className="text-[11px] px-2.5 py-1 rounded-full bg-white hover:bg-orange-50 text-slate-700 hover:text-[#D9532F] border border-slate-200 whitespace-nowrap transition shadow-xs"
+            className="text-xs px-2.5 py-1 rounded-full bg-white hover:bg-orange-50 text-slate-700 hover:text-[#D9532F] border border-slate-200 whitespace-nowrap transition shadow-xs"
           >
             {prompt}
           </button>

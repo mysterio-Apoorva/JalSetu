@@ -32,10 +32,10 @@ export const AnomalyAlertBanner: React.FC<AnomalyAlertBannerProps> = ({
             <span className="text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-200 text-rose-900 border border-rose-300">
               🚨 Fraud Sentinel: {topAlarm.alertCode}
             </span>
-            <span className="text-[11px] font-mono text-rose-800 font-bold">
+            <span className="text-xs font-mono text-rose-800 font-bold">
               Tanker {topAlarm.tankerId}
             </span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-xs text-slate-500">
               • {formatTimeAgo(topAlarm.timestamp)}
             </span>
           </div>
@@ -44,7 +44,7 @@ export const AnomalyAlertBanner: React.FC<AnomalyAlertBannerProps> = ({
             {topAlarm.message}
           </p>
 
-          <p className="text-[11px] text-rose-800">
+          <p className="text-xs text-rose-800">
             <strong>Recommended Action:</strong> {topAlarm.recommendedAction}
           </p>
         </div>

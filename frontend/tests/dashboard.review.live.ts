@@ -88,7 +88,7 @@ for (const role of ['Citizen', 'Dispatcher', 'Driver', 'Auditor']) {
       }
       expect(report.errors).toEqual([]);
       const revoked = page.waitForResponse(r => r.request().headers()['x-amz-target']?.endsWith('.RevokeToken'));
-      await page.getByRole('button', { name: 'Switch Role / Sign Out' }).click();
+      await page.getByRole('button', { name: 'Sign out' }).click();
       expect((await revoked).ok()).toBe(true);
     } finally {
       writeFileSync(`../.runtime/dashboard-review/${role.toLowerCase()}.json`, JSON.stringify(report, null, 2));

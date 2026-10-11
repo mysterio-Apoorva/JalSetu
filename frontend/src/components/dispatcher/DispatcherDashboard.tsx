@@ -76,7 +76,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
         {/* Left 8 Cols: Working Map Area (with 3D Radar vs Tactical GPS Toggle) */}
         <div className="lg:col-span-8 space-y-4">
           {/* Map Mode Sub-header Switcher */}
-          <div className="flex items-center justify-between px-2">
+          <div className="flex flex-wrap gap-3 items-center justify-between px-2">
             <div className="flex items-center gap-2 text-xs font-mono font-bold text-slate-700">
               <Radio className="w-4 h-4 text-emerald-600 animate-pulse" />
               <span>ACTIVE DISPATCH GRID</span>
@@ -131,7 +131,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
           )}
 
           {/* Quick Zonal Deficit Summary Cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {wards.length > 0 && <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {wards.slice(0, 4).map((ward) => (
               <div
                 key={ward.id}
@@ -147,13 +147,13 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                     }`}
                   />
                 </div>
-                <div className="text-slate-500 text-[11px]">
+                <div className="text-slate-500 text-xs">
                   Active:{" "}
                   <strong className="text-slate-800">
                     {ward.activeRequestsCount} reqs
                   </strong>
                 </div>
-                <div className="text-slate-500 text-[11px]">
+                <div className="text-slate-500 text-xs">
                   Delivered:{" "}
                   <strong className="text-emerald-700">
                     {formatLiters(ward.deliveredLitersToday)}
@@ -161,7 +161,7 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
         </div>
 
         {/* Right 4 Cols: Fleet Inspector & Bedrock Copilot Drawer Launcher */}
@@ -177,14 +177,14 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                   <h4 className="font-extrabold text-slate-900 text-sm">
                      Bedrock AI Copilot
                   </h4>
-                  <p className="text-[10px] text-emerald-700 font-mono font-medium">
+                  <p className="text-xs text-emerald-700 font-mono font-medium">
                     {LIVE_MODE
                       ? "Snapshot-grounded responses"
                       : "Example responses"}
                   </p>
                 </div>
               </div>
-              <span className="text-[9px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold font-mono">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold font-mono">
                 {LIVE_MODE ? "AWS MODE" : "DEMO"}
               </span>
             </div>
@@ -230,6 +230,8 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
 
             {/* List Body */}
             <div className="p-3 max-h-[380px] overflow-y-auto space-y-2">
+              {activeTab === "FLEET" && fleet.length === 0 && <div className="empty-state"><strong>No tankers registered yet</strong><p>Registered vehicles and their latest status will appear here once your fleet is onboarded.</p></div>}
+              {activeTab === "REQUESTS" && requests.length === 0 && <div className="empty-state"><strong>No incoming requests</strong><p>New resident requests will appear here for review and dispatch.</p></div>}
               {activeTab === "FLEET"
                 ? fleet.map((tanker) => {
                     const isSelected = selectedTanker?.id === tanker.id;
@@ -251,21 +253,21 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                             {tanker.vehicleNumber}
                           </span>
                           <span
-                            className={`px-2 py-0.5 rounded text-[9px] font-bold ${
+                            className={`px-2 py-0.5 rounded text-xs font-bold ${
                               isAnomaly
                                 ? "bg-rose-100 text-rose-800"
                                 : "bg-emerald-100 text-emerald-800"
                             }`}
                           >
-                            {tanker.status.replace("_", " ")}
+                            {tanker.status.replaceAll("_", " ").toLowerCase()}
                           </span>
                         </div>
-                        <div className="text-slate-600 text-[11px]">
+                        <div className="text-slate-600 text-xs">
                           Driver: <strong>{tanker.driverName}</strong> •{" "}
                           {tanker.depotName}
                         </div>
-                        <p className="text-[11px] mt-1 text-slate-600"><TelemetryStatus sampledAt={tanker.telemetryAt} /></p>
-                        <div className="flex items-center justify-between text-slate-500 text-[10px] mt-1 font-mono">
+                        <p className="text-xs mt-1 text-slate-600"><TelemetryStatus sampledAt={tanker.telemetryAt} /></p>
+                        <div className="flex items-center justify-between text-slate-500 text-xs mt-1 font-mono">
                           <span>Speed: {tanker.speedKmph} km/h</span>
                           <span className="text-emerald-700 font-bold">
                             {tanker.currentWaterLevelLiters.toLocaleString()} L
@@ -284,20 +286,20 @@ export const DispatcherDashboard: React.FC<DispatcherDashboardProps> = ({
                         <span className="font-bold text-slate-900">
                           {req.wardName}
                         </span>
-                        <span className="font-mono text-[9px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">
+                        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-bold">
                           AI Score {req.urgencyScore}
                         </span>
                       </div>
-                      <p className="text-slate-600 text-[11px] line-clamp-1 italic">
+                      <p className="text-slate-600 text-xs line-clamp-1 italic">
                         "{req.complaintText}"
                       </p>
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 font-mono pt-1">
+                      <div className="flex items-center justify-between text-xs text-slate-400 font-mono pt-1">
                         <span>
                           {req.householdCount} homes • {req.vulnerableCount}{" "}
                           vulnerable
                         </span>
                         <span className="text-[#D9532F] font-bold">
-                          {req.status}
+                          {req.status.replaceAll("_", " ").toLowerCase()}
                         </span>
                       </div>
                     </div>

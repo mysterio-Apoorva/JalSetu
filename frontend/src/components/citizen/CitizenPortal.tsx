@@ -143,7 +143,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
+    <div className="max-w-6xl mx-auto space-y-6 pb-12">
       {/* Header Banner */}
       <div className="glossy-card p-5 rounded-2xl border border-slate-200/90 bg-white/95 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -163,7 +163,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
 
         <div className="flex items-center gap-3 bg-emerald-50 px-3.5 py-2 rounded-xl border border-emerald-200 text-xs">
           <ShieldCheck className="w-5 h-5 text-emerald-700 flex-shrink-0" />
-          <div className="text-[11px] text-emerald-950 font-medium">
+          <div className="text-xs text-emerald-950 font-medium">
             <strong>Resident confirmation:</strong> Tankers cannot mark delivery
             completed without your resident OTP.
           </div>
@@ -182,7 +182,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                 <Droplet className="w-4 h-4 text-[#D9532F]" />
                 <span>Submit Water Need</span>
               </h3>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
                 AI Urgency Scoring
               </span>
             </div>
@@ -292,7 +292,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                   onChange={(e) => setDaysWithoutWater(Number(e.target.value))}
                   className="w-full accent-[#D9532F] cursor-pointer"
                 />
-                <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+                <div className="flex justify-between text-xs text-slate-500 font-mono">
                   <span>Enter actual days without supply</span>
                   <span>4 Days (Critical Deficit)</span>
                   <span>7+ Days (Emergency)</span>
@@ -334,7 +334,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                     type="button"
                     hidden={LIVE_MODE}
                     onClick={handleSimulateVoiceNote}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold transition ${
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold transition ${
                       isRecording
                         ? "bg-rose-600 text-white animate-pulse"
                         : "bg-purple-100 hover:bg-purple-200 text-purple-800 border border-purple-300"
@@ -376,13 +376,13 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                       Score: {aiAnalysisResult.urgencyScore}/100
                     </span>
                   </div>
-                  <div className="text-[11px] text-purple-950 font-medium">
+                  <div className="text-xs text-purple-950 font-medium">
                     Priority Tier:{" "}
                     <strong className="text-[#D9532F]">
                       {aiAnalysisResult.priorityTier}
                     </strong>
                   </div>
-                  <div className="text-[11px] text-slate-600 italic">
+                  <div className="text-xs text-slate-600 italic">
                     "{aiAnalysisResult.keyConcerns.join(", ")}"
                   </div>
                 </div>
@@ -445,7 +445,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
               <div className="glossy-card p-5 rounded-2xl border-2 border-emerald-300/80 bg-gradient-to-b from-emerald-50/60 to-white shadow-md space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-2 border-b border-emerald-200/80 pb-3">
                   <div className="min-w-0 flex-1">
-                    <span className="text-[10px] uppercase font-mono font-bold text-emerald-800 tracking-wider">
+                    <span className="text-xs uppercase font-mono font-bold text-emerald-800 tracking-wider">
                       Live Dispatch Ticket
                     </span>
                     <h4 className="font-mono font-black text-slate-900 text-lg break-all">
@@ -459,11 +459,11 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
 
                 {/* Resident 6-Digit Verification OTP */}
                 <div className="p-4 rounded-xl bg-white border border-emerald-200 text-center space-y-1 shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
+                  <span className="text-xs uppercase font-bold text-slate-500 tracking-wider flex items-center justify-center gap-1">
                     <KeyRound className="w-3.5 h-3.5 text-[#D9532F]" />
-                    <span>Your Secure Proof-of-Delivery OTP</span>
+                    <span>Resident confirmation code</span>
                   </span>
-                  <div className="text-3xl font-black font-mono tracking-widest text-slate-900 py-1">
+                  <div className={(recoveredCodes[activeTrackedRequest.id] || activeTrackedRequest.expectedOtp) && activeTrackedRequest.status !== "DELIVERED_VERIFIED" ? "text-3xl font-bold font-mono tracking-widest text-slate-900 py-2" : "text-lg font-semibold text-slate-900 py-2"}>
                     {activeTrackedRequest.status === "DELIVERED_VERIFIED"
                       ? "Completed"
                       : recoveredCodes[activeTrackedRequest.id] ||
@@ -504,7 +504,7 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
                     A replacement invalidates the previous code. Codes expire
                     after 24 hours and are shown here, not sent by SMS.
                   </p>
-                  <p className="text-[10px] text-slate-500">
+                  <p className="text-xs text-slate-500">
                     Give this 6-digit code to the tanker driver{" "}
                     <strong>ONLY AFTER</strong> water is discharged into your
                     community tank.

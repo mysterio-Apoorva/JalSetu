@@ -50,14 +50,14 @@ export default function MetroHero({ videoSrc = DEFAULT_VIDEO, title = "THE CITY 
   }, []);
 
   return <div ref={section} className={`relative w-full overflow-hidden bg-slate-950 ${className}`}
-    style={{ minHeight: "min(740px, 90svh)", ...style }} data-testid="landing-animation">
+    style={{ minHeight: "min(620px, 82svh)", ...style }} data-testid="landing-animation">
     <img src={heroPoster} alt="" className="absolute inset-0 w-full h-full object-cover" />
     {!failed && <video ref={video} src={videoSrc} muted playsInline loop preload="metadata" poster={heroPoster}
       onPlaying={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={onComplete}
       onError={() => { setFailed(true); setPlaying(false); }} aria-hidden="true"
       className="absolute inset-0 w-full h-full object-cover pointer-events-none" />}
     <div className="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-slate-950/25 to-slate-950/95" />
-    <div className="relative z-10 flex min-h-[560px] flex-col items-center justify-center px-6 pt-16 pb-36 text-center text-white">
+    <div className="relative z-10 flex min-h-[480px] flex-col items-center justify-center px-6 pt-24 pb-16 text-center text-white">
       <p className="text-xs tracking-[0.25em] uppercase text-emerald-300 mb-4">Delhi water access</p>
       <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight">{title}</h1>
       <p className="mt-5 max-w-xl text-lg sm:text-2xl text-slate-100">{tagline}</p>
