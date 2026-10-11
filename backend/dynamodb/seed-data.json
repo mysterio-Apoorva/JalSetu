@@ -1,0 +1,63 @@
+{
+  "TableName": "JalSetu-Core-Prod",
+  "SeedItems": [
+    {
+      "_comment": "Sample Ward record",
+      "PK": "WARD#WARD-01",
+      "SK": "META",
+      "name": "Sangam Vihar & Deoli",
+      "zone": "South Delhi",
+      "population": 280000,
+      "groundwaterDepletionScore": 94,
+      "deficitSeverity": "CRITICAL",
+      "coordinates": { "lat": 28.502, "lng": 77.241 }
+    },
+    {
+      "_comment": "Sample Depot record",
+      "PK": "WARD#WARD-01",
+      "SK": "DEPOT#DEPOT-02",
+      "name": "Mehrauli Emergency Booster Depot",
+      "capacityLiters": 120000,
+      "activeTankersCount": 5,
+      "coordinates": { "lat": 28.5215, "lng": 77.185 }
+    },
+    {
+      "_comment": "Sample Water Request",
+      "PK": "WARD#WARD-01",
+      "SK": "REQUEST#REQ-101",
+      "GSI1PK": "STATUS#DISPATCHED",
+      "GSI1SK": "2026-10-09T08:15:00.000Z",
+      "citizenName": "Sunita Sharma (RWA Secretary)",
+      "phone": "+91 98101 23456",
+      "daysWithoutWater": 4,
+      "vulnerableCount": 8,
+      "urgencyScore": 94,
+      "priorityTier": "CRITICAL_EMERGENCY",
+      "status": "DISPATCHED",
+      "assignedTankerId": "DL-01-TK-101",
+      "expectedOtp": "482910"
+    },
+    {
+      "_comment": "Sample Verified Delivery (PoD)",
+      "PK": "TRIP#TRIP-001",
+      "SK": "POD#POD-001",
+      "GSI1PK": "STATUS#VERIFIED",
+      "GSI1SK": "2026-10-09T08:10:00.000Z",
+      "tankerId": "DL-04-TK-412",
+      "litersDelivered": 4000,
+      "otpVerified": true,
+      "geofenceVerified": true,
+      "auditHash": "0x8f2a93c4e1b764d90218bfa937e29410cbfa982410a83e921d749102bfae1839"
+    },
+    {
+      "_comment": "Sample Fraud Alert",
+      "PK": "ALERT#ALR-8801",
+      "SK": "FRAUD#2026-10-09T09:12:00.000Z",
+      "GSI1PK": "SEVERITY#CRITICAL",
+      "tankerId": "DL-03-TK-308",
+      "incidentType": "GHOST_TRIP_UNVERIFIED",
+      "dwellTimeSeconds": 90,
+      "status": "ACTIVE_ALARM"
+    }
+  ]
+}

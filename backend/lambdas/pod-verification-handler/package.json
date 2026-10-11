@@ -1,0 +1,10 @@
+{
+  "name": "jalsetu-pod-verification-handler",
+  "version": "1.0.0",
+  "description": "Validates 3-way handshake (Resident OTP + GPS Geofence + Photo PoD hash)",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.540.0",
+    "@aws-sdk/client-s3": "^3.540.0"
+  }
+}

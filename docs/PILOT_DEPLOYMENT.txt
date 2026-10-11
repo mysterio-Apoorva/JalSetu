@@ -1,0 +1,80 @@
+JAL-SETU pilot release — 11 October 2026
+
+Scope
+Real Cognito accounts, AWS persistence, OpenStreetMap tiles, and Open-Meteo recent
+daily weather. A resident selects a map point and reports water-outage days,
+infants under one year and elders aged 60+. These are self-reported household
+counts, not census estimates. The pilot does not promise tanker dispatch.
+
+Data links
+https://open-meteo.com/en/docs
+https://open-meteo.com/en/terms
+https://www.openstreetmap.org/copyright
+Open-Meteo free API is for non-commercial use. Commercial operation requires an
+appropriate service plan. Daily weather is model output, not a ground sensor or
+an official drought declaration. No dataset supplies actual current household
+age counts or delivery partners automatically.
+
+Priority version pilot-priority-v1
+35 * min(daysWithoutWater / 14, 1)
+20 * min(consecutive daily rainfall < 1 mm / 30, 1)
+15 * clamp((7-day mean temperature Celsius - 25) / 15, 0, 1)
+15 * min(infants / 5, 1)
+15 * min(elders / 5, 1)
+The sum is rounded to 0–100. These are unvalidated pilot policy weights. Each
+score includes its weather-through date; resubmit to refresh the report/weather.
+No missing weather is converted to zero. Reports leave the board after seven
+days; one current report per account avoids double-counting repeated submissions.
+Locations are rounded to roughly 100 m and count components are withheld from
+the shared board. Reports are household points, not verified ward-wide rankings.
+
+AI simulation
+Nova Canvas model amazon.nova-canvas-v1:0, one 512x512 image per simulation.
+Asynchronous DynamoDB Stream worker; server-side ownership check; private S3.
+Generated scene is wrapped in an SVG carrying a permanent simulation banner.
+It never enters AUDIT, REQUEST, delivery volumes, OTP verification or real proof.
+One simulation/account/UTC day and a shared daily attempt allowance. Retrying
+returns the same job, avoiding duplicate generation. No model-level retry.
+Failed/interrupted jobs need operator investigation and never count as delivery.
+SimulationDailyLimit defaults to 0 until the operator supplies a spending limit.
+
+Account check
+AWS account 924531126433, us-east-1. Active FREE account plan. Read-only check
+reported USD 119.99 credits and expiration 2026-12-25. This is a point-in-time
+balance, not a permanent zero-cost guarantee. No paid-plan upgrade is performed.
+https://aws.amazon.com/amplify/pricing/
+https://aws.amazon.com/free/free-tier-faqs/
+https://aws.amazon.com/bedrock/pricing/
+
+Release commands, run from project root with the existing AWS profile
+1. python scripts/infrastructure.py
+2. Backend npm test; frontend npm run lint; frontend npm run build.
+3. frontend: npx playwright test --config playwright.production.config.ts
+4. cfn-lint infra/template.yaml
+5. python scripts/deploy_amplify.py prepare
+6. python scripts/configure-registration.py --execute
+7. python scripts/prepare_production_backend.py --origin https://main.deemkw95tpvmo.amplifyapp.com
+8. Inspect .runtime/production-backend-release.json and CloudFormation changes.
+9. python scripts/finish_pilot_release.py --execute
+10. Wait for backend UPDATE_COMPLETE; check public endpoint and denied old demo identities.
+11. python scripts/deploy_amplify.py publish
+12. python scripts/deploy_amplify.py status
+13. Check live HTTPS site, CSP/CORS, registration, real-account needs submission.
+
+User-only steps
+Create and email-verify your resident account on the deployed site. Supply the
+verified email if it should receive a staff role. Never share your password,
+verification code, AWS root login or access keys in chat.
+Supply the desired AWS spending allowance and operational alert email. Confirm
+the SNS subscription email after its destination is configured.
+To enable AI, configure SimulationDailyLimit within that allowance, deploy it,
+then run a real image-generation smoke test before calling that path verified.
+
+Remaining operational boundaries
+No actual delivery partners, verified collection sites or opening tanker
+inventory have been supplied. Physical dispatch remains gated accordingly.
+This is a public pilot, not a certified emergency allocation system. Operator
+vetting, weather-refresh policy, abuse/load limits, data retention, commercial
+weather licensing and the AI path's real invocation test need review before a
+larger operational rollout. Existing operations dashboards keep their actual
+data/empty states; generated delivery images cannot make missing partners real.

@@ -1,0 +1,26 @@
+[
+  {
+    "source": "jalsetu.pod",
+    "detail-type": "UnverifiedResidentClaim",
+    "id": "example-event-001",
+    "detail": {
+      "requestId": "REQ-EXAMPLE",
+      "tankerId": "TANKER-01",
+      "wardName": "Demonstration ward",
+      "incidentType": "GHOST_TRIP_UNVERIFIED",
+      "message": "Resident OTP mismatch"
+    }
+  },
+  {
+    "source": "jalsetu.telemetry",
+    "detail-type": "ShortPourDurationDetected",
+    "id": "example-event-002",
+    "detail": {
+      "tankerId": "TANKER-01",
+      "wardName": "Demonstration ward",
+      "incidentType": "SHORT_POUR_DURATION",
+      "dwellTimeSeconds": 90,
+      "message": "Reported water level fell unusually quickly; inspect the meter."
+    }
+  }
+]

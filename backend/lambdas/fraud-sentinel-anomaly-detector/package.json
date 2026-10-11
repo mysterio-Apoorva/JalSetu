@@ -1,0 +1,10 @@
+{
+  "name": "jalsetu-fraud-sentinel-anomaly-detector",
+  "version": "1.0.0",
+  "description": "Detects ghost trips, diverted routes, short pour duration, and suspicious delivery timestamps",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.540.0",
+    "@aws-sdk/client-sns": "^3.540.0"
+  }
+}

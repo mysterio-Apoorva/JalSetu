@@ -1,0 +1,11 @@
+{
+  "name": "jalsetu-citizen-request-intake",
+  "version": "1.0.0",
+  "description": "Receives citizen water requests via web/WhatsApp & enqueues to SQS FIFO",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.540.0",
+    "@aws-sdk/client-sqs": "^3.540.0",
+    "@aws-sdk/lib-dynamodb": "^3.540.0"
+  }
+}

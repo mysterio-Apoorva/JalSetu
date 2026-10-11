@@ -1,0 +1,9 @@
+{
+  "name": "jalsetu-bedrock-urgency-classifier",
+  "version": "1.0.0",
+  "description": "Analyzes multilingual voice/text complaints using Amazon Bedrock Claude 3.5 Sonnet to rate urgency and vulnerability",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.540.0"
+  }
+}

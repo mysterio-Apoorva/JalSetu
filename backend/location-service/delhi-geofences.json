@@ -1,0 +1,52 @@
+[
+  {
+    "GeofenceId": "DEPOT-01-WAZIRABAD",
+    "Description": "Wazirabad Water Treatment Plant & Central Tanker Booster Hub",
+    "Geometry": {
+      "Circle": {
+        "Center": [77.2140, 28.7120],
+        "Radius": 500
+      }
+    }
+  },
+  {
+    "GeofenceId": "DEPOT-02-MEHRAULI",
+    "Description": "Mehrauli Emergency Booster Station",
+    "Geometry": {
+      "Circle": {
+        "Center": [77.1850, 28.5240],
+        "Radius": 400
+      }
+    }
+  },
+  {
+    "GeofenceId": "DEPOT-03-DWARKA-SEC6",
+    "Description": "Dwarka Sector 6 Booster Pumping Station",
+    "Geometry": {
+      "Circle": {
+        "Center": [77.0680, 28.5920],
+        "Radius": 400
+      }
+    }
+  },
+  {
+    "GeofenceId": "WARD-01-SANGAM-VIHAR",
+    "Description": "Sangam Vihar & Deoli High-Deficit Informal Settlement Zone",
+    "Geometry": {
+      "Circle": {
+        "Center": [77.2450, 28.5020],
+        "Radius": 1200
+      }
+    }
+  },
+  {
+    "GeofenceId": "WARD-19-DWARKA",
+    "Description": "Dwarka Sub-City Tail-End Pipeline Deficit Cluster",
+    "Geometry": {
+      "Circle": {
+        "Center": [77.0650, 28.5820],
+        "Radius": 1000
+      }
+    }
+  }
+]

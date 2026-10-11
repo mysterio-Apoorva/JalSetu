@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+frontend/test-results/
+frontend/playwright-report/
+scratch_cognito.json
+operations-data/
+.runtime/
+node_modules/
+dist/
+.aws-sam/
+__pycache__/
+*.tsbuildinfo

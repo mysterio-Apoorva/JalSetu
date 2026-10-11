@@ -1,0 +1,41 @@
+JAL-SETU operational onboarding and release
+
+Status: local hardening and release tooling prepared. Real operation and publication depend on the owner's outstanding inputs. No public dataset supplies live fleet ownership, driver authorization, actual inventory, resident confirmation or delivery photos.
+
+Local validation for this preparation: 44 Node backend tests, 5 registration-hook tests, 3 CSV-import validation tests, 18 existing browser tests and 3 compiled-production browser tests passed (73 total). Production build, frontend lint, template reference/parity validation and the production fixture-exclusion check passed. Browser acceptance uses mocked service responses; it does not establish newly deployed AWS behavior. No AWS application changes or Amplify app have been deployed by this preparation.
+
+Reference sources (verify currency and suitability with the operator):
+Delhi Jal Board tanker management: https://delhijalboard.delhi.gov.in/jalboard/schedule-water-tankers
+Municipal ward map: https://www.nma.gov.in/showfile.php?lang=1&level=2&lid=1485&ls_id=1210&nma_type=0
+National Water Data Portal, Delhi: https://nwdp.nwic.gov.in/organization/delhi-sw-gw
+The DJB 2024 summer plan is historical context, not current operating inventory:
+https://delhijalboard.delhi.gov.in/sites/default/files/Jalboard/universal-tab/summer_action_plan_2024.pdf
+
+Provide real records using operations-wards.csv, operations-depots.csv and operations-fleet.csv in this directory. The templates intentionally contain no example rows. Save completed files in operations-data/ (ignored by source control). Do not send passwords or AWS keys.
+
+Every imported record requires a source reference, verifier, and actual verification timestamp with timezone. Collection points must be field-verified shared delivery locations; map centroids are not acceptable substitutes. Population and deficit category must come from a documented source/operator assessment. Fleet opening inventory needs a depot receipt reference. Drivers must have existing email-verified Cognito accounts assigned to the Driver group. Import uses conditional writes and never overwrites inventory or manufactures past deliveries.
+
+Validate without AWS writes:
+python scripts/import_operations.py operations-data
+
+After records and identities have been reviewed:
+python scripts/assign_staff.py EMAIL ROLE --execute
+python scripts/import_operations.py operations-data --execute
+
+Only Citizen self-registration is allowed by the new registration hook. Existing staff/test permissions are not silently rewritten by local edits. Deploy the hook before public hosting. Re-authentication is needed after adding staff groups. The new LIVE namespace separates operational data from historical demo records without deleting the old ledger; only verified new records should enter LIVE. Demo account subjects must be blocked in the backend release and existing demo accounts disabled/sign-out before launch.
+
+Release order:
+1. Run backend, hook, importer and browser tests; build the frontend. The production bundle excludes the development simulator and preset records.
+2. Supply staff and alert recipient addresses. Staff register and verify email themselves; administrator grants approved groups. Subscribe the chosen alert recipient to the existing SNS operations topic and confirm the subscription.
+3. Choose an operating scope. An empty pilot can show honest empty states; it cannot accept water requests without verified service points. Actual operations require fleet and opening inventory.
+4. Prepare Amplify in account 924531126433, us-east-1: python scripts/deploy_amplify.py prepare. This creates hosting metadata, not a published website.
+5. Regenerate templates with python scripts/infrastructure.py. Prepare the backend change set using python scripts/prepare_production_backend.py --origin EXACT_AMPLIFY_HTTPS_ORIGIN. Review its replacement/removal checks, then execute that exact change set. This adds refill routing, production isolation and blocked test subjects. Update the root .env ALLOWED_ORIGIN to the same origin after deployment.
+6. Deploy resident-only registration with python scripts/configure-registration.py --execute. Disable/sign-out the four exact existing demo accounts after staff onboarding. Do not delete identities or historical evidence.
+7. Import verified operating records. Re-run fresh API and physical-delivery acceptance using an authorized resident, driver and dispatcher. Do not record synthetic photos, GPS or litres as real delivery events.
+8. Publish only frontend/dist: python scripts/deploy_amplify.py publish. Check python scripts/deploy_amplify.py status until SUCCEED. Verify HTTPS, /public routing, CORS, response security headers, authentication and a real operational flow on the hosted origin.
+
+Hosting upload contains static assets only; no .env, credentials, backend sources or source maps. The deployment script checks AWS account identity against the backend stack and verifies namespace/CORS before publishing. The scripts do not claim to validate physical truth or confer municipal authorization.
+
+Remaining operational acceptance: alert subscription confirmation; production email-sending capacity; data retention/privacy owner and policy; supervised real delivery with >=320x240 JPEG, accurate on-site GPS and resident code; representative authenticated load test; backup restoration and queue redrive rehearsal. The dispatcher/public APIs still read growing entity collections and must not be certified for unbounded traffic or record counts without bounded reporting/pagination and measurement. Amplify hosting alone does not resolve these requirements.
+
+Images: upload photographs taken during the actual delivery with permission to store them. Historical stock/dataset photos cannot replace proof of a specific delivery. No real delivery photos are bundled into the website.

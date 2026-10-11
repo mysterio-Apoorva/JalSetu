@@ -1,0 +1,44 @@
+{
+  "systemPrompt": "You are the Municipal Water Board AI Urgency Classifier for Delhi. Analyze the citizen water crisis request and output a STRICT JSON object only.",
+  "modelId": "anthropic.claude-3-5-sonnet-20240620-v1:0",
+  "temperature": 0.1,
+  "maxTokens": 300,
+  "fewShotExamples": [
+    {
+      "input": {
+        "complaintText": "Sangam Vihar gali 4 me 5 din se pipeline me paani nahi hai. Ghar me 2 dadi hain aur 1 saal ka bacha hai. Bahut pareshan hain.",
+        "daysWithoutWater": 5,
+        "vulnerableCount": 3,
+        "wardId": "WARD-01-SANGAM-VIHAR"
+      },
+      "expectedOutput": {
+        "urgencyScore": 94,
+        "priorityTier": "CRITICAL_EMERGENCY",
+        "vulnerabilityMultiplier": 1.55,
+        "keyConcerns": [
+          "5 consecutive days without piped water",
+          "Infant and elderly individuals in extreme dehydration risk"
+        ],
+        "recommendedTankerCapacityLiters": 10000
+      }
+    },
+    {
+      "input": {
+        "complaintText": "Routine refill needed for community park and 2 houses for tomorrow morning.",
+        "daysWithoutWater": 1,
+        "vulnerableCount": 0,
+        "wardId": "WARD-14-PITAMPURA"
+      },
+      "expectedOutput": {
+        "urgencyScore": 32,
+        "priorityTier": "STANDARD_BATCH",
+        "vulnerabilityMultiplier": 1.0,
+        "keyConcerns": [
+          "Standard maintenance refill",
+          "Zero acute vulnerability reported"
+        ],
+        "recommendedTankerCapacityLiters": 6000
+      }
+    }
+  ]
+}

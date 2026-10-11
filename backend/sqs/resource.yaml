@@ -1,0 +1,40 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "SurgeQueue": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "SqsManagedSseEnabled": true,
+        "VisibilityTimeout": 720,
+        "RedrivePolicy": {
+          "deadLetterTargetArn": {
+            "Fn::GetAtt": [
+              "QueueDLQ",
+              "Arn"
+            ]
+          },
+          "maxReceiveCount": 5
+        }
+      }
+    },
+    "QueueDLQ": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "FifoQueue": true,
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600
+      }
+    },
+    "StreamDLQ": {
+      "Type": "AWS::SQS::Queue",
+      "Properties": {
+        "SqsManagedSseEnabled": true,
+        "MessageRetentionPeriod": 1209600
+      }
+    }
+  }
+}

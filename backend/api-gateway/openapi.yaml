@@ -1,0 +1,328 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "JAL-SETU",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "jwt": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "jwt": []
+    }
+  ],
+  "paths": {
+    "/requests": {
+      "post": {
+        "summary": "Citizen /requests",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/snapshot": {
+      "get": {
+        "summary": "Authenticated /snapshot",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/public": {
+      "get": {
+        "summary": "Public /public",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/requests/rating": {
+      "post": {
+        "summary": "Citizen /requests/rating",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/optimize": {
+      "post": {
+        "summary": "Dispatcher /optimize",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/copilot": {
+      "post": {
+        "summary": "Dispatcher /copilot",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/telemetry": {
+      "post": {
+        "summary": "Driver /telemetry",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/delivery/verify": {
+      "post": {
+        "summary": "Driver /delivery/verify",
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON result; see docs/AWS_SETUP.md"
+          },
+          "400": {
+            "description": "Invalid input"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Unauthorized operation"
+          },
+          "409": {
+            "description": "State conflict"
+          },
+          "500": {
+            "description": "Service unavailable"
+          }
+        }
+      }
+    },
+    "/requests/otp": {
+      "post": {
+        "summary": "Citizen: rotate owned delivery code; 60 second cooldown",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "409": {
+            "description": "Record changed"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/anomalies/resolve": {
+      "post": {
+        "summary": "Dispatcher: persist investigation and resolve active alert",
+        "responses": {
+          "200": {
+            "description": "Success"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "409": {
+            "description": "Record changed"
+          },
+          "429": {
+            "description": "Rate limited"
+          }
+        }
+      }
+    },
+    "/evidence": {
+      "get": {
+        "summary": "Auditor or dispatcher: retrieve private versioned delivery photo and verify stored evidence hashes",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Private evidence with integrity result"
+          },
+          "403": {
+            "description": "Not authorized"
+          },
+          "404": {
+            "description": "Evidence not found"
+          }
+        }
+      }
+    }
+  }
+}

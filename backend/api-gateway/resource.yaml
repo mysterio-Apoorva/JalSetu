@@ -1,0 +1,51 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "Api": {
+      "Type": "AWS::Serverless::HttpApi",
+      "Properties": {
+        "CorsConfiguration": {
+          "AllowOrigins": [
+            {
+              "Ref": "AllowedOrigin"
+            }
+          ],
+          "AllowMethods": [
+            "GET",
+            "POST",
+            "OPTIONS"
+          ],
+          "AllowHeaders": [
+            "Content-Type",
+            "Authorization"
+          ]
+        },
+        "Auth": {
+          "DefaultAuthorizer": "JwtAuthorizer",
+          "Authorizers": {
+            "JwtAuthorizer": {
+              "IdentitySource": "$request.header.Authorization",
+              "JwtConfiguration": {
+                "issuer": {
+                  "Ref": "JwtIssuer"
+                },
+                "audience": [
+                  {
+                    "Ref": "JwtAudience"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "DefaultRouteSettings": {
+          "ThrottlingBurstLimit": 200,
+          "ThrottlingRateLimit": 100
+        }
+      }
+    }
+  }
+}

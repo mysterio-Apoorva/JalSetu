@@ -1,0 +1,67 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "OperationsBus": {
+      "Type": "AWS::Events::EventBus",
+      "Properties": {
+        "Name": {
+          "Ref": "BusName"
+        }
+      }
+    },
+    "FraudRule": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "EventBusName": {
+          "Ref": "OperationsBus"
+        },
+        "EventPattern": {
+          "source": [
+            "jalsetu.pod",
+            "jalsetu.telemetry"
+          ],
+          "detail-type": [
+            "UnverifiedResidentClaim",
+            "ValveOutsideDeliveryZone",
+            "ShortPourDurationDetected",
+            "GeofenceExitWithoutPoD"
+          ]
+        },
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "FraudFunction",
+                "Arn"
+              ]
+            },
+            "Id": "FraudSentinel",
+            "RetryPolicy": {
+              "MaximumRetryAttempts": 10,
+              "MaximumEventAgeInSeconds": 86400
+            }
+          }
+        ]
+      }
+    },
+    "FraudPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "FraudFunction"
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "FraudRule",
+            "Arn"
+          ]
+        }
+      }
+    }
+  }
+}

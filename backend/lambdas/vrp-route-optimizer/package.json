@@ -1,0 +1,10 @@
+{
+  "name": "jalsetu-vrp-route-optimizer",
+  "version": "1.0.0",
+  "description": "Solves Capacitated Vehicle Routing Problem for Delhi emergency centers & deficit wards",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.540.0",
+    "@aws-sdk/client-eventbridge": "^3.540.0"
+  }
+}

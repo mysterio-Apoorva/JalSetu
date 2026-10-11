@@ -1,0 +1,11 @@
+Asset: frontend/public/simulated-delivery.png
+Generated: 2026-10-11 using the built-in image_gen tool (imagegen skill).
+Resolution: 1536 x 1024.
+Purpose: illustrative delivery simulation displayed beside the real needs board.
+The image is never submitted as delivery evidence and contributes no delivered litres.
+
+Final prompt:
+Use case: photorealistic-natural. Asset type: JalSetu website simulated delivery image. Create a realistic documentary-style fictional scene of a generic unbranded water tanker delivering water through a hose into water containers on a residential street in Delhi, India, in natural daylight. Wide landscape composition, clear visible tanker and hose and containers, plausible physical connections, no people required, no official logos or readable vehicle plates. Include a prominent, legible bottom banner with exact text 'AI-GENERATED SIMULATION' and smaller text 'Not evidence of a real delivery'. This is an illustrative simulation, never a photo of an actual event.
+
+The bundled image is available without a per-user model invocation. The separate
+optional Nova Canvas generation endpoint retains its operator-configured quota.

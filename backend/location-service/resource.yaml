@@ -1,0 +1,45 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "Geofences": {
+      "Type": "AWS::Location::GeofenceCollection",
+      "Properties": {
+        "CollectionName": {
+          "Ref": "GeofenceName"
+        }
+      }
+    },
+    "Tracker": {
+      "Type": "AWS::Location::Tracker",
+      "Properties": {
+        "TrackerName": {
+          "Ref": "TrackerName"
+        },
+        "PositionFiltering": "TimeBased"
+      }
+    },
+    "Routes": {
+      "Type": "AWS::Location::RouteCalculator",
+      "Properties": {
+        "CalculatorName": {
+          "Ref": "RouteCalculatorName"
+        },
+        "DataSource": "Here"
+      }
+    },
+    "Map": {
+      "Type": "AWS::Location::Map",
+      "Properties": {
+        "MapName": {
+          "Ref": "MapName"
+        },
+        "Configuration": {
+          "Style": "VectorHereExplore"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "jalsetu-geofence-telemetry-processor",
+  "version": "1.0.0",
+  "description": "Ingests high-frequency GPS from tankers and checks for geofence entry/exit events",
+  "main": "index.js",
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.540.0",
+    "@aws-sdk/client-eventbridge": "^3.540.0",
+    "@aws-sdk/client-location": "^3.540.0"
+  }
+}

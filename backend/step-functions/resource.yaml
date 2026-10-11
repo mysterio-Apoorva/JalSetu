@@ -1,0 +1,58 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "DeliveryWorkflow": {
+      "Type": "AWS::Serverless::StateMachine",
+      "Properties": {
+        "Type": "STANDARD",
+        "DefinitionUri": "../backend/step-functions/delivery-verification-workflow.asl.json",
+        "DefinitionSubstitutions": {
+          "BedrockClassifierArn": {
+            "Fn::GetAtt": [
+              "ClassifierFunction",
+              "Arn"
+            ]
+          },
+          "VrpOptimizerArn": {
+            "Fn::GetAtt": [
+              "OptimizerFunction",
+              "Arn"
+            ]
+          },
+          "PoDValidatorArn": {
+            "Fn::GetAtt": [
+              "PodFunction",
+              "Arn"
+            ]
+          }
+        },
+        "Policies": [
+          {
+            "LambdaInvokePolicy": {
+              "FunctionName": {
+                "Ref": "ClassifierFunction"
+              }
+            }
+          },
+          {
+            "LambdaInvokePolicy": {
+              "FunctionName": {
+                "Ref": "OptimizerFunction"
+              }
+            }
+          },
+          {
+            "LambdaInvokePolicy": {
+              "FunctionName": {
+                "Ref": "PodFunction"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  localstack:
+    container_name: jalsetu-localstack
+    image: localstack/localstack:latest
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"    # external services port range
+    environment:
+      - SERVICES=dynamodb,sqs,sns,events,stepfunctions,lambda,apigateway,s3,cloudwatch
+      - AWS_DEFAULT_REGION=ap-south-1
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - DEBUG=1
+    volumes:
+      - "./init-aws.sh:/etc/localstack/init/ready.d/init-aws.sh"
+      - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+      - "/var/run/docker.sock:/var/run/docker.sock"

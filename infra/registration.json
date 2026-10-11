@@ -1,0 +1,98 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "JAL-SETU self-service registration hooks for the existing Cognito pool",
+  "Resources": {
+    "RegistrationRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "AssignRegistrationRole",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "cognito-idp:AdminAddUserToGroup",
+                  "Resource": "arn:aws:cognito-idp:us-east-1:924531126433:userpool/us-east-1_ko5ROUcaz"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "RegistrationFunction": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Runtime": "python3.12",
+        "Handler": "index.handler",
+        "Timeout": 5,
+        "MemorySize": 128,
+        "Role": {
+          "Fn::GetAtt": [
+            "RegistrationRole",
+            "Arn"
+          ]
+        },
+        "Environment": {
+          "Variables": {
+            "USER_POOL_ID": "us-east-1_ko5ROUcaz",
+            "APP_CLIENT_ID": "16ploao82gc7qg4djtua5sdbuh"
+          }
+        },
+        "Code": {
+          "ZipFile": "\"\"\"Public registration grants resident access only. Staff roles are administrator-managed.\"\"\"\nimport os\nimport boto3\n\nROLES = frozenset(('Citizen',))\n\n\ndef handler(event, context):\n    if event.get('userPoolId') != os.environ['USER_POOL_ID']:\n        raise ValueError('Unexpected user pool')\n    source = event.get('triggerSource')\n    # Password recovery must never restore a removed group or change staff access.\n    if source == 'PostConfirmation_ConfirmForgotPassword':\n        return event\n    if source == 'PreSignUp_AdminCreateUser':\n        return event\n    if source not in ('PreSignUp_SignUp', 'PostConfirmation_ConfirmSignUp'):\n        raise ValueError('Unsupported registration event')\n    if event.get('callerContext', {}).get('clientId') != os.environ['APP_CLIENT_ID']:\n        raise ValueError('Unsupported application client')\n    attributes = event.get('request', {}).get('userAttributes', {})\n    role = attributes.get('custom:registration_role')\n    if role not in ROLES:\n        raise ValueError('Public registration is for Citizen accounts. Staff access requires an administrator.')\n    if not attributes.get('email'):\n        raise ValueError('Email is required')\n    if source == 'PostConfirmation_ConfirmSignUp':\n        if attributes.get('email_verified') != 'true':\n            raise ValueError('Verify your email before activating your workspace')\n        boto3.client('cognito-idp').admin_add_user_to_group(\n            UserPoolId=event['userPoolId'], Username=event['userName'], GroupName=role)\n    return event\n"
+        }
+      }
+    },
+    "RegistrationLog": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "/aws/lambda/${RegistrationFunction}"
+        },
+        "RetentionInDays": 14
+      }
+    },
+    "CognitoInvokePermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Ref": "RegistrationFunction"
+        },
+        "Principal": "cognito-idp.amazonaws.com",
+        "SourceArn": "arn:aws:cognito-idp:us-east-1:924531126433:userpool/us-east-1_ko5ROUcaz",
+        "SourceAccount": {
+          "Ref": "AWS::AccountId"
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "TriggerArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "RegistrationFunction",
+          "Arn"
+        ]
+      }
+    }
+  }
+}

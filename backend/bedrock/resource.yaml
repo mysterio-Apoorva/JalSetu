@@ -1,0 +1,83 @@
+{
+  "Metadata": {
+    "Source": "infra/template.yaml",
+    "Usage": "Review excerpt only. Deploy the complete master template."
+  },
+  "Resources": {
+    "ClassifierFunction": {
+      "Type": "AWS::Serverless::Function",
+      "Properties": {
+        "CodeUri": "../backend/",
+        "Handler": "lambdas/bedrock-urgency-classifier/index.handler",
+        "Policies": [
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "dynamodb:GetItem",
+                  "dynamodb:BatchGetItem",
+                  "dynamodb:PutItem",
+                  "dynamodb:UpdateItem",
+                  "dynamodb:Query",
+                  "dynamodb:TransactWriteItems"
+                ],
+                "Resource": [
+                  {
+                    "Fn::GetAtt": [
+                      "CoreTable",
+                      "Arn"
+                    ]
+                  },
+                  {
+                    "Fn::Sub": "${CoreTable.Arn}/index/*"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "bedrock:InvokeModel"
+                ],
+                "Resource": [
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:bedrock:*::foundation-model/*"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:inference-profile/*"
+                  },
+                  {
+                    "Fn::Sub": "arn:${AWS::Partition}:bedrock:*:${AWS::AccountId}:application-inference-profile/*"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "Events": {
+          "Route0": {
+            "Type": "HttpApi",
+            "Properties": {
+              "ApiId": {
+                "Ref": "Api"
+              },
+              "Path": "/api/v1/copilot",
+              "Method": "POST"
+            }
+          }
+        },
+        "Environment": {
+          "Variables": {
+            "BEDROCK_MODEL_ID": {
+              "Ref": "BedrockModelId"
+            }
+          }
+        }
+      }
+    }
+  }
+}
