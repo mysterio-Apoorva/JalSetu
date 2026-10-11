@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { formatLiters } from "../../utils/formatters";
 import { EvidenceViewer } from "./EvidenceViewer";
+import { IsometricWaterHeatmap } from "../ui/IsometricWaterHeatmap";
 
 interface PublicTransparencyBoardProps {
   wards: Ward[];
@@ -207,6 +208,9 @@ export const PublicTransparencyBoard: React.FC<
           </p>
         </div>
       </div>
+
+      {/* 3D Isometric 365-Day Water Contribution & Equity Matrix */}
+      <IsometricWaterHeatmap className="w-full shadow-lg" />
 
       <div className="glossy-panel rounded-2xl p-5">
         <h3 className="font-bold text-slate-800">Verified delivery ledger</h3>

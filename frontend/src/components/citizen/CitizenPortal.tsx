@@ -12,6 +12,7 @@ import {
   Star,
 } from "lucide-react";
 import { classifyWaterComplaint } from "../../services/bedrockClassifier";
+import { CitizenCrowdCanvas, type CitizenPersona } from "../ui/CitizenCrowdCanvas";
 
 interface CitizenPortalProps {
   wards: Ward[];
@@ -80,6 +81,27 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
     setAiAnalysisResult(result);
   };
 
+  const handleSelectPersona = (p: CitizenPersona) => {
+    setCitizenName(p.name);
+    setComplaintText(p.quote);
+    setDaysWithoutWater(p.daysDry);
+    setVulnerableCount(p.elders + p.infants);
+    setHouseholdCount(Math.max(1, p.infants + p.elders + 2));
+    const matchedWard = wards.find(
+      (w) =>
+        w.id === p.wardId ||
+        w.name.toLowerCase().includes(p.locality.toLowerCase()) ||
+        p.locality.toLowerCase().includes(w.name.toLowerCase()),
+    );
+    if (matchedWard) setSelectedWardId(matchedWard.id);
+    const result = classifyWaterComplaint(
+      p.quote,
+      p.daysDry,
+      p.elders + p.infants,
+    );
+    setAiAnalysisResult(result);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -142,6 +164,9 @@ export const CitizenPortal: React.FC<CitizenPortalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Interactive Delhi Community Crowd Canvas */}
+      <CitizenCrowdCanvas onSelectPersona={handleSelectPersona} className="w-full shadow-md" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left 7 Cols: File a Water Request Form */}

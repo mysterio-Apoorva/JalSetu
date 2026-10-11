@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Droplets,
   Map,
@@ -6,10 +7,14 @@ import {
   ShieldCheck,
   Cpu,
   RotateCcw,
+  Film,
+  X,
+  Box,
 } from "lucide-react";
 import type { StakeholderRole } from "../../types";
 import { LIVE_MODE } from "../../services/api";
 import { rolePortals, type AuthSession } from "../../services/auth";
+import MetroHero from "../ui/scroll-locked-video-hero";
 interface Props {
   session: AuthSession | null;
   connected: boolean;
@@ -30,12 +35,15 @@ export function Navbar({
   activeAlertCount,
   onResetDemo,
 }: Props) {
+  const [showHero, setShowHero] = useState(false);
   const roles = [
     { id: "DISPATCHER", label: "Command center", icon: Map },
     { id: "CITIZEN", label: "Citizen portal", icon: Users },
     { id: "DRIVER", label: "Driver workspace", icon: Truck },
     { id: "PUBLIC_BOARD", label: "Transparency", icon: ShieldCheck },
-    { id: "AWS_ARCHITECTURE", label: "Architecture", icon: Cpu },
+    { id: "AWS_ARCHITECTURE", label: "3D Machine", icon: Cpu },
+    { id: "HEATMAP", label: "3D Skyline", icon: Box },
+    { id: "LANDING", label: "Story & Intro", icon: Film },
   ] as const;
   return (
     <header className="site-header">
@@ -50,6 +58,14 @@ export function Navbar({
           </span>
         </a>
         <div className="header-right">
+          <button
+            className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold border border-sky-400/50 bg-sky-950/20 hover:bg-sky-900/30 text-sky-800 transition"
+            onClick={() => setShowHero(true)}
+            title="Experience 'The City Opens' Locked Video Hero"
+          >
+            <Film size={13} className="text-sky-600" />
+            <span>Video Hero</span>
+          </button>
           {!LIVE_MODE && (
             <span className="region-label">
               New Delhi <span>•</span> Water operations
@@ -60,6 +76,34 @@ export function Navbar({
               <span className="status-dot" />
               {LIVE_MODE ? "AWS mode" : "Interactive demo"}
             </span>
+          )}
+          {LIVE_MODE && (
+            <div className="hidden md:flex items-center gap-1.5">
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
+                onClick={() => onSelectRole("AWS_ARCHITECTURE")}
+                title="View 3D Cybernetic Machine Architecture"
+              >
+                3D Machine
+              </button>
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
+                onClick={() => onSelectRole("HEATMAP")}
+                title="View 3D Contribution Skyline"
+              >
+                3D Skyline
+              </button>
+              <button
+                type="button"
+                className="px-2.5 py-1 rounded-lg text-xs font-medium border border-slate-700 bg-slate-900/60 hover:bg-slate-800 text-slate-300 transition cursor-pointer"
+                onClick={() => onSelectRole("LANDING")}
+                title="View Story & Cinematic Video Hero"
+              >
+                Story & Intro
+              </button>
+            </div>
           )}
           {session && (
             <div className="auth-profile">
@@ -118,6 +162,17 @@ export function Navbar({
             </button>
           ))}
       </nav>
+      {showHero && (
+        <div className="fixed inset-0 z-[99999] bg-black">
+          <button
+            onClick={() => setShowHero(false)}
+            className="fixed top-6 right-6 z-[100000] px-4 py-2 rounded-full bg-slate-900/90 text-white border border-white/20 text-xs font-mono font-bold tracking-wider hover:bg-slate-800 shadow-2xl flex items-center gap-2 cursor-pointer transition backdrop-blur-md"
+          >
+            <X size={15} /> EXIT "THE CITY OPENS"
+          </button>
+          <MetroHero />
+        </div>
+      )}
     </header>
   );
 }

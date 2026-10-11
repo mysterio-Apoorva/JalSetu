@@ -30,7 +30,9 @@ import { RefillForm } from "./components/dispatcher/RefillForm";
 import { CitizenPortal } from "./components/citizen/CitizenPortal";
 import { DriverPortal } from "./components/driver/DriverPortal";
 import { PublicTransparencyBoard } from "./components/public/PublicTransparencyBoard";
-import { ArchitectureInspector } from "./components/architecture/ArchitectureInspector";
+import { LandingPage } from "./components/pages/LandingPage";
+import { DedicatedMachinePage } from "./components/pages/DedicatedMachinePage";
+import { DedicatedSkylinePage } from "./components/pages/DedicatedSkylinePage";
 
 import { auth, rolePortals, signOut, type AuthSession } from "./services/auth";
 import { AuthModal } from "./components/auth/AuthModal";
@@ -652,7 +654,11 @@ const Workspace = ({
                 No tanker is assigned to this account.
               </div>
             )}
-          {currentRole === "AWS_ARCHITECTURE" && <ArchitectureInspector />}
+          {currentRole === "LANDING" && (
+            <LandingPage onNavigate={setCurrentRole} />
+          )}
+          {currentRole === "HEATMAP" && <DedicatedSkylinePage />}
+          {currentRole === "AWS_ARCHITECTURE" && <DedicatedMachinePage />}
         </div>
       </main>
 

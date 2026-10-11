@@ -57,15 +57,20 @@ export function RoutePlanner({point,onPick,reports,canConfirm}:{point:Point|null
       <label>Destination longitude<input className="block border rounded p-2 w-36" required type="number" step="any" min={-179.97} max={179.97} value={lng} onChange={e=>setLng(e.target.value)} /></label>
       <button className="secondary-action" disabled={busy}>Use coordinates</button>
     </form>
-    <MapContainer center={[28.63,77.18]} zoom={11} style={{height:400,width:"100%",zIndex:0}}>
-      <TileLayer url="https://tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' />
-      <MapSelection onPick={choose}/><View point={point} route={route}/>
+    <div className="relative overflow-hidden rounded-2xl border border-slate-700/60 shadow-xl bg-slate-950">
+      <MapContainer center={[28.63,77.18]} zoom={11} style={{height:400,width:"100%",zIndex:0}}>
+        <TileLayer
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        <MapSelection onPick={choose}/><View point={point} route={route}/>
       {(config?.centres?.filter(c=>c.status==="READY")||(config?.origin?[config.origin]:[])).map(c=><CircleMarker key={c.name} center={[c.coordinates.lat,c.coordinates.lng]} radius={10} pathOptions={{color:"#047857"}}><Popup>Jal Kendra: {c.name}</Popup></CircleMarker>)}
       {point&&<CircleMarker center={[point.lat,point.lng]} radius={9} pathOptions={{color:"#2563eb"}}><Popup>Selected destination</Popup></CircleMarker>}
       {reports.map(r=><CircleMarker key={r.id} center={[r.coordinates.lat,r.coordinates.lng]} radius={8+r.priority.score/10} pathOptions={{color:r.priority.score>=60?"#b91c1c":"#b45309"}}><Popup>{r.place} · priority {r.priority.score}/100 · resident report</Popup></CircleMarker>)}
       {context?.population?.geometry&&<Polygon positions={context.population.geometry.coordinates[0].map(([x,y])=>[y,x] as [number,number])} pathOptions={{color:"#9333ea",fillOpacity:0.1}}><Popup>WorldPop population sampling area (2025)</Popup></Polygon>}
       {route&&<Polyline positions={route.geometry.coordinates.map(([x,y])=>[y,x] as [number,number])} pathOptions={{color:"#0369a1",weight:5}}/>}
     </MapContainer>
+    </div>
     {error&&<p role="alert" className="text-red-800">{error}</p>}
     {message&&<p role="status">{message}</p>}
     <div className="flex flex-wrap gap-2">

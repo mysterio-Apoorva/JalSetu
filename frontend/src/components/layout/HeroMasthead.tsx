@@ -1,5 +1,7 @@
-import { ArrowUpRight, Droplets, MapPin, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { ArrowUpRight, Droplets, MapPin, ShieldCheck, Film, X } from "lucide-react";
 import type { StakeholderRole } from "../../types";
+import MetroHero from "../ui/scroll-locked-video-hero";
 interface Props {
   onSelectRole: (role: StakeholderRole) => void;
   onTriggerGhostTripDemo: () => void;
@@ -7,6 +9,7 @@ interface Props {
   activeAlertCount: number;
 }
 export function HeroMasthead({ onSelectRole }: Props) {
+  const [showMetroHero, setShowMetroHero] = useState(false);
   const open = (role: StakeholderRole) => {
     onSelectRole(role);
     setTimeout(
@@ -46,7 +49,26 @@ export function HeroMasthead({ onSelectRole }: Props) {
           >
             Explore water equity <ArrowUpRight size={17} />
           </button>
+          <button
+            className="secondary-action inline-flex items-center gap-1.5 border-sky-400/40 bg-sky-950/20 text-sky-700 hover:bg-sky-100/60"
+            onClick={() => setShowMetroHero(true)}
+            title="Experience the locked scroll video scrub hero"
+          >
+            <Film size={15} className="text-sky-600" />
+            "The City Opens" Hero
+          </button>
         </div>
+        {showMetroHero && (
+          <div className="fixed inset-0 z-[99999] bg-black">
+            <button
+              onClick={() => setShowMetroHero(false)}
+              className="fixed top-6 right-6 z-[100000] px-4 py-2 rounded-full bg-slate-900/90 text-white border border-white/20 text-xs font-mono font-bold tracking-wider hover:bg-slate-800 shadow-2xl flex items-center gap-2 cursor-pointer transition backdrop-blur-md"
+            >
+              <X size={15} /> EXIT "THE CITY OPENS"
+            </button>
+            <MetroHero />
+          </div>
+        )}
         <div className="hero-caption">
           <ShieldCheck size={16} /> Resident confirmation. Location check. Photo
           evidence.

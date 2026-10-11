@@ -112,7 +112,9 @@ export function RegistrationForm({
           </>
         ) : (
           <>
-            <p className="my-4 text-sm">Create a resident account to request water. Driver, dispatcher and auditor access is assigned by your operations administrator.</p>
+            <div className="p-3 mb-4 rounded-xl bg-sky-50 border border-sky-100 text-xs text-sky-800 leading-relaxed">
+              Create a resident account to request emergency municipal water. Driver, dispatcher and auditor access is assigned by your operations administrator.
+            </div>
             <label htmlFor="register-password">Password</label>
             <div className="auth-password">
               <input

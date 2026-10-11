@@ -11,6 +11,7 @@ import {
   Server,
   ArrowRight,
 } from "lucide-react";
+import { InteractiveServerlessMachine } from "../ui/InteractiveServerlessMachine";
 const services = [
   {
     name: "API Gateway",
@@ -97,18 +98,24 @@ export function ArchitectureInspector() {
   const [selected, setSelected] = useState(0);
   const item = services[selected];
   return (
-    <section className="space-y-5 pb-8">
+    <section className="space-y-6 pb-8">
       <div>
         <span className="eyebrow">UNDER THE SURFACE</span>
         <h2 className="text-3xl font-bold text-slate-800 mt-2">
           One connected water network.
         </h2>
         <p className="text-sm text-slate-500 mt-3 max-w-2xl">
-          The existing serverless architecture, connected end to end. Select a
-          service to explore its responsibility.
+          The existing serverless architecture, connected end to end. Explore the
+          cyber-industrial pipeline engine below, or select individual AWS services.
         </p>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+
+      {/* Cybernetic 5-Module Interactive System Simulator (AWS Engine) */}
+      <InteractiveServerlessMachine className="w-full" />
+
+      <div>
+        <h3 className="text-lg font-bold text-slate-800 mb-3">Service Deep-Dive Catalog</h3>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {services.map((s, i) => (
           <button
             key={s.name}
@@ -123,6 +130,7 @@ export function ArchitectureInspector() {
             <strong className="block text-xs mt-2">{s.name}</strong>
           </button>
         ))}
+      </div>
       </div>
       <div className="glossy-panel p-7 rounded-2xl">
         <item.icon className="text-emerald-700 mb-4" />

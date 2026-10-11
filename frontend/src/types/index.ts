@@ -1,5 +1,11 @@
 export type StakeholderRole =
-  "DISPATCHER" | "CITIZEN" | "DRIVER" | "PUBLIC_BOARD" | "AWS_ARCHITECTURE";
+  | "LANDING"
+  | "DISPATCHER"
+  | "CITIZEN"
+  | "DRIVER"
+  | "PUBLIC_BOARD"
+  | "AWS_ARCHITECTURE"
+  | "HEATMAP";
 
 export type RequestStatus =
   | "PENDING_TRIAGE"

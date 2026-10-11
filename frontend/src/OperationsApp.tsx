@@ -9,14 +9,101 @@ import { DispatcherDashboard } from "./components/dispatcher/DispatcherDashboard
 import { RefillForm } from "./components/dispatcher/RefillForm";
 import { DriverPortal } from "./components/driver/DriverPortal";
 import { PublicTransparencyBoard } from "./components/public/PublicTransparencyBoard";
-import { ArchitectureInspector } from "./components/architecture/ArchitectureInspector";
+import { LandingPage } from "./components/pages/LandingPage";
+import { DedicatedMachinePage } from "./components/pages/DedicatedMachinePage";
+import { DedicatedSkylinePage } from "./components/pages/DedicatedSkylinePage";
 import { PilotNeeds } from "./components/PilotNeeds";
+
+import { Droplets } from "lucide-react";
 
 export default function OperationsApp() {
   const session = useSyncExternalStore(auth.subscribe, auth.getSession);
   const notice = useSyncExternalStore(auth.subscribe, auth.getMessage);
-  if (!session && location.pathname === "/public") return <main className="p-4"><a href="/" className="secondary-action inline-flex mb-4">Staff / resident sign in</a><PublicTransparencyBoard wards={[]} requests={[]} anomalies={[]} /></main>;
-  if (!session) return <AuthModal notice={notice} />;
+  const [authOpen, setAuthOpen] = useState(() => {
+    if (typeof window !== "undefined") {
+      const h = window.location.hash;
+      return h === "#auth" || h === "#signin" || h === "#signup";
+    }
+    return false;
+  });
+
+  if (!session && location.pathname === "/public") {
+    return (
+      <main className="p-4">
+        <a href="/" className="secondary-action inline-flex mb-4">Staff / resident sign in</a>
+        <PublicTransparencyBoard wards={[]} requests={[]} anomalies={[]} />
+      </main>
+    );
+  }
+
+  if (!session) {
+    if (authOpen) {
+      return (
+        <AuthModal
+          notice={notice}
+          onBackToLanding={() => {
+            window.location.hash = "";
+            setAuthOpen(false);
+          }}
+        />
+      );
+    }
+    return (
+      <div className="min-h-screen flex flex-col blueprint-grid text-slate-900">
+        <header className="site-header">
+          <div className="brand-row">
+            <a href="#" className="brand">
+              <span className="brand-symbol">
+                <Droplets size={25} />
+              </span>
+              <span>
+                jal<span className="brand-dash">—</span>setu
+                <small>THE WATER CONNECTION</small>
+              </span>
+            </a>
+            <div className="header-right flex items-center gap-2">
+              <button
+                className="secondary-action text-xs"
+                onClick={() => {
+                  window.location.hash = "#auth";
+                  setAuthOpen(true);
+                }}
+              >
+                Sign in
+              </button>
+              <button
+                className="primary-action text-xs"
+                onClick={() => {
+                  window.location.hash = "#signup";
+                  setAuthOpen(true);
+                }}
+              >
+                Create account
+              </button>
+            </div>
+          </div>
+        </header>
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6 space-y-6">
+          <LandingPage
+            onNavigate={() => {
+              window.location.hash = "#auth";
+              setAuthOpen(true);
+            }}
+            onOpenAuth={() => {
+              window.location.hash = "#auth";
+              setAuthOpen(true);
+            }}
+          />
+        </main>
+        <footer className="site-footer">
+          <span className="footer-brand">jal—setu <span>जल–सेतु</span></span>
+          <span>Connecting communities to accountable water supply.</span>
+          <span>Built with AWS · Designed for Delhi</span>
+        </footer>
+      </div>
+    );
+  }
+
   return <Workspace key={session.subject + session.roles.join(",")} session={session} notice={notice} />;
 }
 
@@ -53,7 +140,7 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
   const currentGps = () => new Promise<GeolocationPosition>((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }));
   const tanker = fleet.find(t => t.assignedRoute.length > 0) || fleet[0];
   const changeRole = (next: StakeholderRole) => {
-    if (next === "AWS_ARCHITECTURE" || session.roles.some(group => rolePortals[group] === next)) setRole(next);
+    if (["AWS_ARCHITECTURE", "LANDING", "HEATMAP", "PUBLIC_BOARD"].includes(next) || session.roles.some(group => rolePortals[group] === next)) setRole(next);
   };
   return <div className="min-h-screen flex flex-col blueprint-grid text-slate-900">
     <Navbar session={session} connected={connected && !notice} onSignOut={() => void signOut()} currentRole={role} onSelectRole={changeRole}
@@ -68,7 +155,16 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">{error}</div>}
       {limited && <p className="rounded-xl bg-amber-50 p-4 text-sm">Showing your latest 100 requests. Contact operations for older records.</p>}
       <div className="workspace" id="workspace">
-        {connected && role !== "AWS_ARCHITECTURE" && <PilotNeeds canReport={session.roles.includes("Citizen")} />}
+        {connected && role === "CITIZEN" && (
+          <details className="mb-4 bg-slate-100/60 p-3 rounded-xl border border-slate-200">
+            <summary className="text-xs font-bold text-slate-700 cursor-pointer hover:text-slate-900">
+              Optional: View/Submit Delhi Water Needs Pilot Report
+            </summary>
+            <div className="mt-3">
+              <PilotNeeds canReport={session.roles.includes("Citizen")} />
+            </div>
+          </details>
+        )}
         <div className="workspace-heading"><div><span className="eyebrow">THE OPERATIONS DESK</span><h2>Water moves. Trust follows.</h2></div><span className="workspace-note">One network. Every stakeholder.</span></div>
         {role === "DISPATCHER" && connected && <>
           <DispatcherDashboard wards={wards} depots={depots} fleet={fleet} requests={requests} anomalies={anomalies} isOptimizedMode onToggleOptimization={() => {}} selectedTanker={selected} onSelectTanker={setSelected} onDismissAnomaly={async id => {
@@ -88,9 +184,11 @@ function Workspace({ session, notice }: { session: AuthSession; notice: string }
           const result = await api("/delivery/verify", { requestId, driverOtpInput, litersDelivered, photoProofBase64: photo?.split(",")[1], driverGps: { lat: p.coords.latitude, lng: p.coords.longitude }, accuracyMeters: p.coords.accuracy });
           await refresh(); return result;
         }} />}
+        {role === "LANDING" && <LandingPage onNavigate={changeRole} />}
+        {role === "HEATMAP" && <DedicatedSkylinePage />}
         {role === "PUBLIC_BOARD" && <PublicTransparencyBoard wards={wards} requests={requests} anomalies={anomalies} canReadEvidence={session.roles.includes("Auditor")} />}
-        {role === "AWS_ARCHITECTURE" && <ArchitectureInspector />}
-        {!connected && !["AWS_ARCHITECTURE", "PUBLIC_BOARD"].includes(role) && <p className="glossy-panel p-10 rounded-2xl">Waiting for your authorized AWS workspace. Connection retries automatically.</p>}
+        {role === "AWS_ARCHITECTURE" && <DedicatedMachinePage />}
+        {!connected && !["AWS_ARCHITECTURE", "PUBLIC_BOARD", "LANDING", "HEATMAP"].includes(role) && <p className="glossy-panel p-10 rounded-2xl">Waiting for your authorized AWS workspace. Connection retries automatically.</p>}
         {connected && role === "CITIZEN" && !wards.length && <p className="glossy-panel p-10 rounded-2xl">No verified service areas are available yet. Water requests open after the operator supplies verified collection points.</p>}
         {connected && role === "DRIVER" && !tanker && <p className="glossy-panel p-10 rounded-2xl">No tanker is assigned to this account.</p>}
       </div>
